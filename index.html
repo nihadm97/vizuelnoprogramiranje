@@ -1,0 +1,1858 @@
+<!DOCTYPE html>
+<html lang="bs">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Programerska avantura vozila</title>
+<script src="https://unpkg.com/blockly/blockly.min.js"></script>
+
+<style>
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:Arial, sans-serif;
+}
+
+:root{
+    --board-size:clamp(310px,42vw,520px);
+    --tile-size:calc(var(--board-size) / 10);
+}
+
+body{
+    background:#111827;
+    color:white;
+    overflow:hidden;
+}
+
+.topbar{
+    min-height:66px;
+    background:linear-gradient(90deg,#111827,#1f2937);
+    border-bottom:2px solid rgba(255,255,255,0.08);
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    padding:10px 18px;
+    position:relative;
+    z-index:999999;
+}
+
+.logo{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    font-weight:900;
+    letter-spacing:.4px;
+    font-size:22px;
+    white-space:nowrap;
+}
+
+.logo-badge{
+    width:38px;
+    height:38px;
+    border-radius:12px;
+    background:rgba(255,255,255,.96);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    box-shadow:0 8px 22px rgba(0,0,0,.3);
+    overflow:hidden;
+    padding:4px;
+}
+
+.logo-img{
+    width:100%;
+    height:100%;
+    object-fit:contain;
+    display:block;
+}
+
+.top-info{
+    display:flex;
+    align-items:center;
+    justify-content:flex-end;
+    gap:10px;
+    flex-wrap:wrap;
+}
+
+.pill,
+.level-select{
+    background:rgba(255,255,255,.09);
+    color:white;
+    border:1px solid rgba(255,255,255,.12);
+    padding:9px 13px;
+    border-radius:999px;
+    font-weight:800;
+    font-size:14px;
+}
+
+.level-select{
+    cursor:pointer;
+    outline:none;
+}
+
+.level-select option{
+    color:#111827;
+    background:white;
+}
+
+.main{
+    height:calc(100vh - 66px);
+    display:grid;
+    grid-template-columns:minmax(360px,48%) 1fr;
+}
+
+.game-panel{
+    position:relative;
+    background:radial-gradient(circle at top,#334155 0,#1f2937 48%,#111827 100%);
+    border-right:2px solid rgba(255,255,255,.08);
+    display:flex;
+    align-items:flex-start;
+    justify-content:center;
+    padding:104px 18px 150px;
+    min-width:0;
+    overflow-y:auto;
+    overflow-x:hidden;
+}
+
+.game-card{
+    position:relative;
+    width:var(--board-size);
+}
+
+.mission-card{
+    position:absolute;
+    left:0;
+    right:0;
+    top:-92px;
+    min-height:56px;
+    background:rgba(255,255,255,.97);
+    color:#111827;
+    border-radius:18px;
+    padding:12px 16px;
+    box-shadow:0 15px 35px rgba(0,0,0,.25);
+    display:flex;
+    align-items:center;
+    gap:10px;
+    z-index:20;
+}
+
+.mission-icon{
+    font-size:28px;
+    flex:0 0 auto;
+}
+
+.mission-title{
+    font-size:15px;
+    font-weight:900;
+}
+
+.mission-sub{
+    font-size:12px;
+    color:#4b5563;
+    margin-top:2px;
+    line-height:1.25;
+}
+
+.board{
+    width:var(--board-size);
+    height:var(--board-size);
+    border:7px solid #0f172a;
+    border-radius:22px;
+    overflow:hidden;
+    display:grid;
+    grid-template-columns:repeat(10,1fr);
+    grid-template-rows:repeat(10,1fr);
+    position:relative;
+    background:#5fb96b;
+    box-shadow:0 25px 60px rgba(0,0,0,.38);
+}
+
+.tile{
+    position:relative;
+    border:1px solid rgba(15,23,42,.12);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:calc(var(--tile-size) * .42);
+    overflow:hidden;
+    z-index:2;
+}
+
+.terrain-layer{
+    position:absolute;
+    inset:0;
+    width:100%;
+    height:100%;
+    z-index:8;
+    pointer-events:none;
+}
+
+.board.mountain-backdrop .tile.sky{background:transparent;}
+
+.board.mountain-backdrop .tile.sky.goal,
+.board.mountain-backdrop .tile.airport,
+.board.mountain-backdrop .tile.pickup,
+.board.mountain-backdrop .tile.dropoff,
+.board.mountain-backdrop .tile.wall,
+.board.mountain-backdrop .tile.station{
+    background-clip:padding-box;
+}
+
+.tile.grass{background:linear-gradient(135deg,#86d37c,#62b96a);}
+.tile.road{background:linear-gradient(135deg,#9ca3af,#6b7280);}
+.tile.track{background:linear-gradient(135deg,#b45309,#92400e);}
+.tile.track::after{
+    content:"";
+    position:absolute;
+    left:10%;
+    right:10%;
+    top:45%;
+    height:10%;
+    background:rgba(255,255,255,.35);
+    border-radius:999px;
+}
+.tile.water{background:linear-gradient(135deg,#38bdf8,#0369a1);}
+.tile.sky{background:linear-gradient(135deg,#93c5fd,#60a5fa);}
+.tile.airfield{background:linear-gradient(135deg,#d6d3d1,#a8a29e);}
+.tile.runwayStart{background:linear-gradient(135deg,#4b5563,#1f2937);}
+.tile.runwayStart::before,
+.tile.runwayStart::after{
+    content:"";
+    position:absolute;
+    top:16%;
+    bottom:16%;
+    width:8%;
+    background:rgba(255,255,255,.9);
+    border-radius:999px;
+}
+.tile.runwayStart::before{left:34%;}
+.tile.runwayStart::after{right:34%;}
+.tile.airportTarget{background:linear-gradient(135deg,#d6d3d1,#a8a29e);}
+.tile.target-marker{box-shadow:inset 0 0 0 3px rgba(255,255,255,.28);}
+.tile.transparent-marker{background:transparent !important; box-shadow:none !important;}
+.tile.start-base{box-shadow:inset 0 0 0 4px rgba(34,197,94,.75);}
+.clock-badge{
+    position:absolute;
+    top:3px;
+    right:3px;
+    padding:1px 4px;
+    border-radius:999px;
+    background:rgba(15,23,42,.9);
+    color:white;
+    font-size:9px;
+    font-weight:900;
+    z-index:4;
+}
+.target-icon{position:relative;z-index:40;filter:drop-shadow(0 2px 2px rgba(0,0,0,.35));}
+.tile.mountain{
+    background:linear-gradient(180deg,#dff3ff 0%,#9bd7ff 56%,#7bb86f 56%,#5f9d59 100%);
+    color:white;
+}
+.tile.mountain .mountain-scene{
+    position:absolute;
+    inset:0;
+}
+.tile.mountain .peak{
+    position:absolute;
+    bottom:20%;
+    width:0;
+    height:0;
+    border-left:14px solid transparent;
+    border-right:14px solid transparent;
+    border-bottom:26px solid #64748b;
+    filter:drop-shadow(0 2px 0 rgba(0,0,0,.12));
+}
+.tile.mountain .peak::after{
+    content:"";
+    position:absolute;
+    left:-5px;
+    top:8px;
+    width:0;
+    height:0;
+    border-left:5px solid transparent;
+    border-right:5px solid transparent;
+    border-bottom:10px solid rgba(255,255,255,.92);
+}
+.tile.mountain .peak-back{
+    left:8%;
+    bottom:24%;
+    border-left-width:12px;
+    border-right-width:12px;
+    border-bottom-width:20px;
+    border-bottom-color:#94a3b8;
+    opacity:.95;
+}
+.tile.mountain .peak-front-left{
+    left:24%;
+    bottom:18%;
+}
+.tile.mountain .peak-front-right{
+    right:10%;
+    bottom:18%;
+    border-left-width:16px;
+    border-right-width:16px;
+    border-bottom-width:30px;
+    border-bottom-color:#475569;
+}
+.tile.mountain .mountain-height{
+    position:absolute;
+    top:4px;
+    right:4px;
+    min-width:20px;
+    height:20px;
+    padding:0 5px;
+    border-radius:999px;
+    background:rgba(15,23,42,.85);
+    border:1px solid rgba(255,255,255,.18);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:11px;
+    font-weight:900;
+    line-height:1;
+    z-index:2;
+}
+.tile.wall{background:linear-gradient(135deg,#475569,#1e293b);}
+.tile.goal{background:linear-gradient(135deg,#fde047,#f59e0b);box-shadow:inset 0 0 0 4px rgba(255,255,255,.28);}
+.tile.pathHint{box-shadow:inset 0 0 0 4px rgba(255,255,255,.34);}
+.tile.station,.tile.stationTarget,.tile.goal,.tile.pickup,.tile.dropoff,.tile.airport,.tile.runwayStart,.tile.airportTarget,.tile.wall,.tile.mountain{z-index:26;}
+.tile.station{background:linear-gradient(135deg,#f97316,#ea580c);}
+.tile.stationTarget{background:linear-gradient(135deg,#86d37c,#62b96a);}
+.tile.water.stationTarget{background:linear-gradient(135deg,#38bdf8,#0369a1);}
+.tile.sky.stationTarget,.tile.airfield.stationTarget{background:linear-gradient(135deg,#d6d3d1,#a8a29e);}
+.tile.pickup{background:linear-gradient(135deg,#a78bfa,#7c3aed);}
+.tile.dropoff{background:linear-gradient(135deg,#facc15,#eab308);}
+.tile.dock{background:linear-gradient(135deg,#f59e0b,#b45309);}
+.tile.airport{background:linear-gradient(135deg,#e5e7eb,#94a3b8);}
+.tile.blueTargetTile{background:linear-gradient(135deg,#38bdf8,#0369a1);}
+
+.route-layer{
+    position:absolute;
+    inset:0;
+    width:100%;
+    height:100%;
+    z-index:12;
+    pointer-events:none;
+    overflow:visible;
+}
+
+.route-layer polyline{
+    fill:none;
+    stroke-linecap:round;
+    stroke-linejoin:round;
+}
+
+.route-layer .rail-line{
+    stroke:#78350f;
+    stroke-width:10;
+}
+
+.route-layer .rail-highlight{
+    stroke:rgba(255,255,255,.7);
+    stroke-width:3;
+    stroke-dasharray:10 10;
+}
+
+.route-layer .water-line{
+    stroke:rgba(255,255,255,.82);
+    stroke-width:8;
+    stroke-dasharray:12 10;
+}
+
+.entity{
+    position:absolute;
+    width:calc(var(--tile-size) * .78);
+    height:calc(var(--tile-size) * .78);
+    border-radius:16px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:calc(var(--tile-size) * .45);
+    z-index:30;
+    transition:left .32s ease, top .32s ease, transform .32s ease;
+    box-shadow:0 10px 22px rgba(0,0,0,.32);
+    background:rgba(255,255,255,.94);
+    pointer-events:none;
+}
+
+.entity.robot{background:linear-gradient(135deg,#60a5fa,#2563eb);}
+.entity.train{background:linear-gradient(135deg,#f97316,#dc2626); transition:left .78s linear, top .78s linear, transform .78s linear;}
+.entity.plane{background:linear-gradient(135deg,#e0f2fe,#38bdf8); transition:left .72s linear, top .72s linear, transform .72s linear;}
+.entity.plane.flying,.entity.drone.flying{animation:flySmooth .72s ease-in-out;}
+.entity.ship{background:linear-gradient(135deg,#bfdbfe,#2563eb); transition:left .78s linear, top .78s linear, transform .78s linear;}
+.entity.drone{background:linear-gradient(135deg,#e5e7eb,#94a3b8);}
+
+.entity.train.rolling,
+.entity.ship.rolling{
+    filter:brightness(1.08);
+    box-shadow:0 12px 26px rgba(0,0,0,.34),0 0 12px rgba(248,113,113,.45);
+}
+
+.entity.train.glow,
+.entity.ship.glow{
+    animation:trainGlow .9s ease-in-out infinite alternate;
+}
+
+.status-float{
+    position:absolute;
+    top:12px;
+    right:12px;
+    padding:8px 12px;
+    border-radius:999px;
+    background:rgba(15,23,42,.9);
+    color:white;
+    font-size:13px;
+    font-weight:900;
+    letter-spacing:.2px;
+    box-shadow:0 10px 22px rgba(0,0,0,.25);
+    z-index:45;
+    opacity:0;
+    transform:translateY(-8px) scale(.96);
+    transition:opacity .2s ease, transform .2s ease;
+    pointer-events:none;
+}
+
+.status-float.show{
+    opacity:1;
+    transform:translateY(0) scale(1);
+}
+
+.board-info{
+    position:absolute;
+    top:12px;
+    right:12px;
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+    z-index:46;
+    pointer-events:none;
+}
+
+.board-pill{
+    display:none;
+    align-items:center;
+    justify-content:flex-start;
+    min-width:132px;
+    padding:8px 12px;
+    border-radius:999px;
+    background:rgba(15,23,42,.9);
+    color:white;
+    font-size:13px;
+    font-weight:900;
+    letter-spacing:.2px;
+    box-shadow:0 10px 22px rgba(0,0,0,.25);
+    border:1px solid rgba(255,255,255,.12);
+}
+
+.board-pill.show{display:flex;}
+
+.carry-indicator{
+    position:absolute;
+    left:12px;
+    top:12px;
+    min-width:42px;
+    height:42px;
+    border-radius:14px;
+    background:rgba(15,23,42,.9);
+    border:2px solid rgba(255,255,255,.22);
+    display:none;
+    align-items:center;
+    justify-content:center;
+    font-size:24px;
+    z-index:48;
+    box-shadow:0 10px 22px rgba(0,0,0,.25);
+}
+.carry-indicator.show{display:flex;}
+.carry-indicator.pickup-pop{animation:packagePop .38s ease-out;}
+.entity.package-pop{animation:packagePop .38s ease-out;}
+
+@keyframes packagePop{
+    0%{transform:scale(.78); filter:brightness(1);}
+    55%{transform:scale(1.18); filter:brightness(1.25);}
+    100%{transform:scale(1); filter:brightness(1);}
+}
+
+@keyframes flySmooth{
+    0%{filter:brightness(1);}
+    50%{filter:brightness(1.12) drop-shadow(0 0 8px rgba(255,255,255,.45));}
+    100%{filter:brightness(1);}
+}
+
+@keyframes fuelWarn{
+    from{transform:scale(1); filter:brightness(1);}
+    to{transform:scale(1.04); filter:brightness(1.25);}
+}
+
+@keyframes trainGlow{
+    from{box-shadow:0 10px 22px rgba(0,0,0,.32),0 0 0 rgba(250,204,21,0);}
+    to{box-shadow:0 10px 22px rgba(0,0,0,.32),0 0 22px rgba(250,204,21,.95);}
+}
+
+
+.hud{
+    display:none !important;
+}
+
+.hud-item{
+    display:none;
+    background:rgba(15,23,42,.84);
+    border:1px solid rgba(255,255,255,.12);
+    border-radius:14px;
+    padding:10px 8px;
+    min-height:54px;
+}
+
+.hud-item.active{
+    display:block;
+}
+
+.hud-label{
+    color:#cbd5e1;
+    font-size:11px;
+    font-weight:800;
+    text-transform:uppercase;
+}
+
+.hud-value{
+    font-size:18px;
+    font-weight:900;
+    margin-top:3px;
+}
+
+.fuel-meter{
+    width:100%;
+    height:8px;
+    margin-top:6px;
+    border-radius:999px;
+    overflow:hidden;
+    background:rgba(255,255,255,.16);
+}
+
+.fuel-meter-fill{
+    height:100%;
+    width:100%;
+    border-radius:999px;
+    background:linear-gradient(90deg,#22c55e,#facc15,#ef4444);
+    transition:width .25s ease;
+}
+
+#fuelBox.low-fuel{
+    border-color:rgba(248,113,113,.8);
+    animation:fuelWarn .45s ease-in-out infinite alternate;
+}
+
+.controls{
+    margin-top:18px;
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+    justify-content:flex-start;
+}
+
+button{
+    border:none;
+    background:linear-gradient(135deg,#3b82f6,#2563eb);
+    color:white;
+    padding:12px 18px;
+    border-radius:14px;
+    font-weight:900;
+    cursor:pointer;
+    box-shadow:0 10px 22px rgba(0,0,0,.25);
+}
+
+button.secondary{
+    background:linear-gradient(135deg,#64748b,#475569);
+}
+
+button:hover{
+    transform:translateY(-1px);
+}
+
+.pill.low-fuel{
+    border-color:rgba(248,113,113,.9);
+    animation:fuelWarn .45s ease-in-out infinite alternate;
+}
+
+.editor-panel{
+    position:relative;
+    background:#eef2f7;
+    min-width:0;
+}
+
+#blocklyDiv{
+    width:100%;
+    height:100%;
+}
+
+.overlay{
+    position:absolute;
+    inset:0;
+    background:rgba(2,6,23,.78);
+    display:none;
+    align-items:center;
+    justify-content:center;
+    flex-direction:column;
+    text-align:center;
+    z-index:1000;
+    padding:20px;
+}
+
+.overlay h2{
+    font-size:42px;
+    margin-bottom:10px;
+}
+
+.overlay p{
+    font-size:18px;
+    color:#e5e7eb;
+    max-width:420px;
+    line-height:1.35;
+}
+
+.keyboard-help{
+    position:absolute;
+    left:14px;
+    bottom:14px;
+    background:rgba(15,23,42,.88);
+    padding:12px 14px;
+    border-radius:16px;
+    color:white;
+    font-size:13px;
+    line-height:1.5;
+    display:none;
+    z-index:50;
+}
+
+@media(max-width:980px){
+    body{overflow:auto;}
+    .topbar{position:sticky;top:0;}
+    .main{height:auto;min-height:calc(100vh - 66px);grid-template-columns:1fr;}
+    .game-panel{min-height:calc(var(--board-size) + 290px);border-right:0;border-bottom:2px solid rgba(255,255,255,.08);padding-top:92px;padding-bottom:150px;overflow-y:auto;}
+    .editor-panel{height:620px;}
+    :root{--board-size:min(92vw,500px);}
+}
+
+@media(max-width:560px){
+    .topbar{align-items:flex-start;flex-direction:column;}
+    .top-info{justify-content:flex-start;}
+    .logo{font-size:19px;}
+    .pill,.level-select{font-size:12px;padding:8px 10px;}
+    .mission-card{top:-96px;}
+    .hud{grid-template-columns:repeat(2,1fr);bottom:-132px;}
+    .controls{margin-top:18px;}
+    .game-panel{min-height:calc(var(--board-size) + 360px);}
+    .editor-panel{height:560px;}
+}
+</style>
+</head>
+
+<body>
+<div class="topbar">
+    <div class="logo"><span class="logo-badge"><img class="logo-img" src="https://nihadm97.github.io/Portfolio/static/media/logo.7156bdbd7cb0672472b8.png" alt="Logo"></span> Programerska avantura vozila</div>
+    <div class="top-info">
+        <div class="pill" id="levelIndicator">Nivo 1 / 20</div>
+        <div class="pill" id="modeIndicator">Robot</div>
+
+        <!-- DEBUG LEVEL SELECTOR -->
+        <!-- Ovaj izbor nivoa možeš kasnije obrisati ili sakriti. -->
+        <select class="level-select" id="levelSelect" onchange="jumpToLevel()"></select>
+    </div>
+</div>
+
+<div class="main">
+    <section class="game-panel">
+        <div class="game-card">
+            <div class="mission-card">
+                <div class="mission-icon" id="missionIcon">🤖</div>
+                <div>
+                    <div class="mission-title" id="missionTitle">Nivo 1</div>
+                    <div class="mission-sub" id="missionSub">Složi blokove i dovedi vozilo do cilja.</div>
+                </div>
+            </div>
+
+            <div class="board" id="board"></div>
+            <div class="status-float" id="statusFloat"></div>
+            <div class="board-info" id="boardInfo">
+                <div class="board-pill" id="boardFuel">⛽ Gorivo: —</div>
+                <div class="board-pill" id="boardAlt">⬆ Visina: —</div>
+                <div class="board-pill" id="boardTime">⏰ Vrijeme: —</div>
+            </div>
+
+            <div class="hud" id="hud">
+                <div class="hud-item" id="fuelBox"><div class="hud-label">Gorivo</div><div class="hud-value" id="fuelHud">—</div><div class="fuel-meter"><div class="fuel-meter-fill" id="fuelMeterFill"></div></div></div>
+                <div class="hud-item" id="altBox"><div class="hud-label">Visina</div><div class="hud-value" id="altHud">—</div></div>
+                <div class="hud-item" id="pkgBox"><div class="hud-label">Paketi</div><div class="hud-value" id="pkgHud">—</div></div>
+                <div class="hud-item" id="timeBox"><div class="hud-label">Vrijeme</div><div class="hud-value" id="timeHud">—</div></div>
+            </div>
+
+            <div class="controls">
+                <button onclick="runCode()" id="runBtn">▶ Pokreni</button>
+                <button onclick="resetLevel()" class="secondary">↺ Vrati na početak</button>
+            </div>
+        </div>
+
+        <div class="keyboard-help" id="keyboardHelp">
+            <b>Upravljanje tastaturom</b><br>
+            WASD ili strelice = kretanje<br>
+            Razmaknica = preuzmi / istovari
+        </div>
+
+        <div class="overlay" id="overlay">
+            <h2 id="overlayTitle">Bravo!</h2>
+            <p id="overlayText">Nivo je završen.</p>
+        </div>
+    </section>
+
+    <section class="editor-panel">
+        <div id="blocklyDiv"></div>
+    </section>
+</div>
+
+<xml id="toolbox" style="display:none"></xml>
+
+<script>
+const GRID = 10;
+const board = document.getElementById("board");
+let entity = null;
+let carryIndicator = null;
+
+const levels = [
+{
+    name:"Prvi robot",
+    icon:"🤖", vehicle:"robot", mode:"robot", theme:"grass",
+    mission:"U ovom nivou učiš osnovu algoritma: složi nekoliko blokova redom. Trebaš napraviti tri koraka i jedno skretanje da dođeš do zvjezdice.",
+    start:[3,8], dir:0, goal:[5,7],
+    toolbox:["move_forward_right","turn_left","turn_right"],
+    walls:[], success:{type:"goal"}
+},
+{
+    name:"Lijevo i desno",
+    icon:"🤖", vehicle:"robot", mode:"robot", theme:"grass",
+    mission:"Vježbaš okretanje u oba smjera. Putanja je malo duža: koristi nekoliko kretanja naprijed i dvije vrste skretanja da zaobiđeš prepreke.",
+    start:[2,8], dir:0, goal:[4,6],
+    toolbox:["move_forward_right","turn_left","turn_right"],
+    walls:[[3,8],[3,7],[5,7],[2,5]], success:{type:"goal"}
+},
+{
+    name:"Ponavljanje i prepreke",
+    icon:"🤖", vehicle:"robot", mode:"robot", theme:"grass",
+    mission:"Koristi blok ponavljanja da ne pišeš isti korak mnogo puta. Cilj je zaobići zid uz što pregledniji program.",
+    start:[1,8], dir:3, goal:[8,2],
+    toolbox:["move_forward_right","turn_left","turn_right","repeat"],
+    walls:[[2,6],[2,5],[3,5],[4,5],[5,5],[6,5],[7,5],[7,4],[7,3]],
+    success:{type:"goal"}
+},
+{
+    name:"Uski prolaz",
+    icon:"🤖", vehicle:"robot", mode:"robot", theme:"grass",
+    mission:"Planiraš dužu putanju kroz prolaz. Ovaj nivo pokazuje da dobar algoritam često traži više manjih koraka i skretanja.",
+    start:[1,8], dir:0, goal:[8,2],
+    toolbox:["move_forward_right","turn_left","turn_right","repeat"],
+    walls:[[2,8],[2,7],[2,6],[2,5],[2,4],[4,1],[4,2],[4,3],[4,4],[4,5],[6,5],[7,5],[8,5],[6,7],[7,7],[8,7]],
+    success:{type:"goal"}
+},
+{
+    name:"Voz do stanice",
+    icon:"🚂", vehicle:"train", mode:"train", theme:"track",
+    mission:"Prati nacrtanu prugu. Voz ide polahko po liniji, a na kraju ga zaustavljaš na zvjezdici.",
+    start:[1,5], dir:0, goal:[8,3],
+    toolbox:["go","train_left","train_right","stop"],
+    path:[[1,5],[2,5],[3,5],[4,5],[5,5],[5,4],[5,3],[6,3],[7,3],[8,3]],
+    stations:[[8,3]], showGoalStar:true, success:{type:"stoppedAtGoal"}
+},
+{
+    name:"Dijagonalna pruga",
+    icon:"🚂", vehicle:"train", mode:"train", theme:"track",
+    mission:"Učiš kada treba koristiti dijagonalno kretanje. Prati liniju pruge i biraj dijagonalni blok kad se putanja koso pomjera.",
+    start:[1,7], dir:0, goal:[8,3],
+    toolbox:["go","train_left","train_right","diag_left","diag_right","stop","repeat"],
+    path:[[1,7],[2,7],[3,6],[4,5],[5,5],[6,4],[7,3],[8,3]],
+    stations:[[8,3]], showGoalStar:true, success:{type:"stoppedAtGoal"}
+},
+{
+    name:"Duga pruga",
+    icon:"🚂", vehicle:"train", mode:"train", theme:"track",
+    mission:"Prati dužu prugu sa više ravnih i kosih dijelova. Ovdje ponavljanje može skratiti program.",
+    start:[1,8], dir:0, goal:[8,1],
+    toolbox:["go","train_left","train_right","diag_left","diag_right","stop","repeat"],
+    path:[[1,8],[2,8],[3,7],[4,6],[5,6],[6,5],[7,4],[7,3],[8,2],[8,1]],
+    stations:[[8,1]], showGoalStar:true, success:{type:"stoppedAtGoal"}
+},
+{
+    name:"Pokretanje voza",
+    icon:"🚂", vehicle:"train", mode:"train", theme:"track",
+    mission:"Prije vožnje moraš pokrenuti voz. Putanja je duža, malo skreće i voz se mora zaustaviti na dvije stanice prije završnog cilja.",
+    start:[0,6], dir:0, goal:[9,4],
+    toolbox:["train_start","go","train_left","train_right","stop","repeat"],
+    path:[[0,6],[1,6],[2,6],[3,6],[4,6],[5,6],[5,5],[5,4],[6,4],[7,4],[8,4],[9,4]],
+    stations:[[3,6],[7,4]],
+    transparentStations:true,
+    stationFront:true,
+    eraseRouteOnStations:true,
+    stationIcon:"target",
+    requiredStops:[[3,6],[7,4]],
+    requireStart:true, success:{type:"stoppedAtRequiredStations"}
+},
+{
+    name:"Avion i gorivo",
+    icon:"✈️", vehicle:"plane", mode:"aircraft", theme:"airfield", airportStyle:"runway",
+    mission:"Učiš kako se visina podiže i spušta. Prati oznaku Visina 1, 2, 3... dok dižeš avion i 3, 2, 1... dok ga spuštaš prije slijetanja. Pazi na gorivo.",
+    start:[1,5], dir:0, goal:[8,5],
+    toolbox:["alt_up","alt_down","move_forward_right","move_up","move_down","land"],
+    fuel:12, airports:[[1,5],[8,5]], showGoalStar:true, yellowGoal:true, success:{type:"landedAtGoal"}
+},
+{
+    name:"Let preko planina",
+    icon:"🚁", vehicle:"plane", mode:"aircraft", theme:"airfield", airportStyle:"runway",
+    mission:"Preko cijele mape vidiš brda. Oznaka na najvećem vrhu pokazuje kolika visina treba da sigurno preletiš planine, a zatim se spusti i sleti na cilj.",
+    start:[1,7], dir:0, goal:[8,3],
+    toolbox:["alt_up","alt_down","move_forward_right","move_up","move_down","diag_left","diag_right","land","repeat"],
+    fuel:22, airports:[[1,7],[8,3]], showGoalStar:true,
+    mountains:[{x:4,y:7,h:3},{x:5,y:6,h:3},{x:6,y:5,h:5},{x:7,y:4,h:4}],
+    fullMountainBackdrop:true, maxMountainHeight:5,
+    success:{type:"landedAtGoal"}
+},
+{
+    name:"Brod i petlja dok",
+    icon:"🚢", vehicle:"ship", mode:"ship", theme:"water",
+    mission:"Paket je već ukrcan. Koristi petlju 'dok nisi na cilju' da brod ide do doka, a zatim istovari paket.",
+    start:[1,5], dir:0, goal:[8,5],
+    toolbox:["while_goal","move_forward_right","unload"],
+    carryingStart:1, capacity:1,
+    waterPath:[[1,5],[2,5],[3,5],[4,5],[5,5],[6,5],[7,5],[8,5]],
+    dropoffs:[[8,5]], showGoalStar:true, success:{type:"delivered", required:1}
+},
+{
+    name:"Brod skreće",
+    icon:"🚢", vehicle:"ship", mode:"ship", theme:"water",
+    mission:"Brod više ne ide samo pravo. Prati nacrtanu vodenu rutu i koristi skretanja kada se pravac promijeni.",
+    start:[1,7], dir:0, goal:[8,3],
+    toolbox:["while_goal","move_forward_right","turn_left","turn_right","unload"],
+    carryingStart:1, capacity:1,
+    waterPath:[[1,7],[2,7],[3,7],[4,7],[4,6],[4,5],[5,5],[6,5],[7,5],[8,5],[8,4],[8,3]],
+    dropoffs:[[8,3]], showGoalStar:true, success:{type:"delivered", required:1}
+},
+{
+    name:"Istovar na doku",
+    icon:"🚢", vehicle:"ship", mode:"ship", theme:"water",
+    mission:"Tačka za istovar nije kraj mape. Prvo istovari paket na doku, zatim nastavi do završne zvjezdice.",
+    start:[1,7], dir:0, goal:[8,2],
+    toolbox:["while_goal","move_forward_right","turn_left","turn_right","diag_left","diag_right","unload","repeat"],
+    carryingStart:1, capacity:1,
+    waterPath:[[1,7],[2,7],[3,6],[4,5],[5,5],[6,4],[7,4],[8,3],[8,2]],
+    dropoffs:[[5,5]], transparentTargets:false, blueTargetBg:true, customDropoffIcon:"🎯", eraseRouteOnTargets:true, success:{type:"deliveredAndGoal", required:1}
+},
+{
+    name:"Svemirski brod tastaturom",
+    icon:"🛸", vehicle:"drone", mode:"keyProgram", theme:"grass",
+    mission:"Prvo napravi upravljanje pomoću blokova. U padajućem izboru koristi oznake ↑ / W, ↓ / S, ← / A i → / D, pa za svaku tipku dodaj odgovarajući blok kretanja.",
+    start:[1,8], dir:0, goal:[8,2],
+    toolbox:["if_key_pressed","move_up","move_down","move_left","move_right"],
+    noAutoRepeat:true,
+    walls:[[4,4],[4,5],[4,6],[5,4],[6,4]], success:{type:"goal"}
+},
+{
+    name:"Svemirski brod do stanice i nazad",
+    icon:"🛸", vehicle:"drone", mode:"droneBlocks", theme:"grass",
+    mission:"Doleti do ciljne zvjezdice, a zatim se vrati na početnu glavnu stanicu. Pazi na prepreke i planiraj povratak.",
+    start:[1,8], dir:0, goal:[8,2], showStartBase:true,
+    toolbox:["move_forward","move_back","move_left","move_right","repeat","while_goal"],
+    walls:[[3,8],[3,7],[5,6],[5,5],[5,4],[7,4],[2,3],[3,3]],
+    success:{type:"goalAndReturn"}
+},
+{
+    name:"Svemirski brod dostava",
+    icon:"🛸", vehicle:"drone", mode:"droneBlocks", theme:"grass",
+    mission:"Dođi do paketa, preuzmi ga, dostavi na metu, a zatim se vrati na početnu stanicu.",
+    start:[1,8], dir:0, goal:[8,2], showStartBase:true,
+    toolbox:["move_forward","move_back","move_left","move_right","pickup","unload","repeat","while_target"],
+    walls:[[4,3],[4,4],[4,5],[4,6],[6,7]],
+    pickups:[[2,6]], dropoffs:[[8,2]], capacity:1, success:{type:"deliveredAndReturn", required:1}
+},
+{
+    name:"Svemirski brod i gorivo",
+    icon:"🛸", vehicle:"drone", mode:"droneBlocks", theme:"grass",
+    mission:"Preuzmi paket na posebnoj lokaciji, zaobiđi prepreke i dostavi ga na označenu metu. Pazi na gorivo.",
+    start:[1,8], dir:0, goal:[8,2], showStartBase:true,
+    toolbox:["move_forward","move_back","move_left","move_right","pickup","unload","repeat","while_target"],
+    fuel:34, pickups:[[2,6]], dropoffs:[[8,2]], capacity:1, totalPackages:1, onePackagePerPickup:true,
+    walls:[[3,8],[3,7],[3,6],[3,5],[5,7],[5,6],[5,5],[5,4],[7,6],[7,5],[7,4],[2,3],[3,3],[4,3],[6,2]],
+    success:{type:"deliveredAndReturn", required:1}
+},
+{
+    name:"Dvije dostave",
+    icon:"🛸", vehicle:"drone", mode:"droneBlocks", theme:"grass",
+    mission:"Možeš nositi samo jedan paket. Preuzmi prvi paket i dostavi ga, zatim preuzmi drugi paket i dostavi ga. Nakon obje dostave vrati se na početak.",
+    start:[1,8], dir:0, goal:[8,2], showStartBase:true,
+    toolbox:["move_forward","move_back","move_left","move_right","pickup","unload","repeat","while_target"],
+    pickups:[[2,7],[3,2]], dropoffs:[[8,2],[7,6]], capacity:1, totalPackages:2, onePackagePerPickup:true,
+    walls:[[4,8],[4,7],[4,6],[6,4],[6,3],[6,2],[2,4],[3,4],[4,4]],
+    success:{type:"deliveredAndReturn", required:2}
+},
+{
+    name:"Dvije dostave i gorivo",
+    icon:"🛸", vehicle:"drone", mode:"droneBlocks", theme:"grass",
+    mission:"Kao prethodni nivo, ali sada prati i gorivo. Preuzmi i dostavi dva paketa jedan po jedan, pa se vrati na početak prije nego što se gorivo potroši.",
+    start:[1,8], dir:0, goal:[8,2], showStartBase:true,
+    toolbox:["move_forward","move_back","move_left","move_right","pickup","unload","repeat","while_target"],
+    pickups:[[2,7],[3,2]], dropoffs:[[8,2],[7,6]], capacity:1, totalPackages:2, onePackagePerPickup:true, fuel:42,
+    walls:[[4,8],[4,7],[4,6],[4,5],[6,5],[6,4],[6,3],[2,4],[3,4],[7,7]],
+    success:{type:"deliveredAndReturn", required:2}
+},
+{
+    name:"Dostava u tačno vrijeme",
+    icon:"🛸", vehicle:"drone", mode:"droneBlocks", theme:"grass",
+    mission:"Početno vrijeme je 11:30, a paket mora stići tačno u 12:00. Putovanje traje 10 minuta, zato ne smiješ krenuti prije 11:50. Najprije čekaj, zatim preuzmi paket, dostavi ga na označenu stanicu i na kraju se vrati kući.",
+    start:[1,8], dir:0, goal:[8,2], showStartBase:true,
+    toolbox:["move_forward","move_back","move_left","move_right","pickup","unload","wait","repeat","while_target"],
+    pickups:[[2,7]], dropoffs:[[8,2]], capacity:1, totalPackages:1, onePackagePerPickup:true,
+    startTime:690, earliestDeparture:710, travelTime:10, deliverTime:720, success:{type:"deliveredAndReturn", required:1}
+}
+];
+
+let currentLevel = 0;
+let x = 0, y = 0, dir = 0;
+let fuel = null, initialFuel = null, altitude = 0, carrying = 0, delivered = 0;
+let trainStarted = false, stopped = false, landed = false;
+let stationStops = [];
+let packagesLeftAtHub = 0;
+let gameTime = null;
+let reachedGoalBeforeReturn = false;
+let completedPickupSpots = [];
+let running = false;
+let failed = false;
+let statusFloatTimer = null;
+let completing = false;
+
+function level(){ return levels[currentLevel]; }
+function same(a,b){ return a && b && a[0]===b[0] && a[1]===b[1]; }
+function hasCoord(list,cx,cy){ return (list||[]).some(p=>p[0]===cx && p[1]===cy); }
+function mountainAt(cx,cy){ return (level().mountains||[]).find(m=>m.x===cx && m.y===cy); }
+function tileSize(){ return board.clientWidth / GRID; }
+
+function renderLevel(){
+    const L = level();
+    board.innerHTML = "";
+    board.classList.toggle("mountain-backdrop", !!L.fullMountainBackdrop);
+
+    for(let row=0; row<GRID; row++){
+        for(let col=0; col<GRID; col++){
+            const tile = document.createElement("div");
+            tile.className = "tile " + tileClass(col,row,L);
+            tile.innerHTML = tileIcon(col,row,L);
+            board.appendChild(tile);
+        }
+    }
+
+    drawRouteLayer(L);
+
+    drawMountainBackdrop(L);
+
+    entity = document.createElement("div");
+    entity.className = "entity " + L.vehicle;
+    entity.textContent = L.icon;
+    board.appendChild(entity);
+
+    carryIndicator = document.createElement("div");
+    carryIndicator.className = "carry-indicator";
+    carryIndicator.textContent = "📦";
+    board.appendChild(carryIndicator);
+
+    document.getElementById("levelIndicator").textContent = `Nivo ${currentLevel+1} / ${levels.length}`;
+    document.getElementById("modeIndicator").textContent = modeName(L.mode);
+    document.getElementById("missionIcon").textContent = L.icon;
+    document.getElementById("missionTitle").textContent = L.name;
+    document.getElementById("missionSub").textContent = L.mission;
+    document.getElementById("levelSelect").value = currentLevel;
+    const helpBox = document.getElementById("keyboardHelp");
+    if(L.mode === "keyboard"){
+        helpBox.innerHTML = "<b>Upravljanje tastaturom</b><br>WASD ili strelice = kretanje<br>Razmaknica = preuzmi / istovari";
+        helpBox.style.display = "block";
+    }else if(L.mode === "keyProgram" && L.showKeyHelp){
+        helpBox.innerHTML = "<b>Tipke</b><br>Koristi ↑/W, ↓/S, ←/A i →/D";
+        helpBox.style.display = "block";
+    }else{
+        helpBox.style.display = "none";
+    }
+    document.getElementById("runBtn").style.display = (L.mode === "keyboard" || L.mode === "keyProgram") ? "none" : "inline-block";
+
+    resetState(false);
+    updateHudVisibility();
+    updateToolbox();
+}
+
+function tileClass(col,row,L){
+    let cls = L.theme || "grass";
+    if(L.theme === "track") cls = "grass";
+    if(L.theme === "water") cls = "water";
+    if(L.theme === "sky") cls = "sky";
+    if(L.theme === "airfield") cls = "airfield";
+
+    const onPath = hasCoord(L.path,col,row);
+    const onWaterPath = hasCoord(L.waterPath,col,row);
+    const stationHere = hasCoord(L.stations,col,row);
+    const airportHere = hasCoord(L.airports,col,row);
+    const pickupHere = hasCoord(L.pickups,col,row);
+    const dropoffHere = hasCoord(L.dropoffs,col,row);
+    const wallHere = hasCoord(L.walls,col,row);
+    const startBaseHere = hasCoord(L.bases,col,row) || (same(L.start,[col,row]) && L.showStartBase);
+    const isGoal = same(L.goal,[col,row]);
+
+    if(onPath) cls = "grass";
+    if(onWaterPath) cls = "water";
+
+    if(stationHere){
+        cls = L.stationIcon === "target"
+            ? (L.transparentStations ? cls + " transparent-marker" : cls + " stationTarget target-marker")
+            : (L.showGoalStar && isGoal ? "goal" : "station");
+        if(L.stationFront || L.transparentStations) cls += " front-marker";
+    }
+    if(airportHere){
+        if(L.airportStyle === "runway") cls = same(L.start,[col,row]) ? "runwayStart" : (L.yellowGoal && isGoal ? "goal" : "airportTarget");
+        else cls = "airport";
+    }
+    if(pickupHere) cls = "pickup";
+    if(dropoffHere){
+        if(L.blueTargetBg) cls = "blueTargetTile";
+        else cls = L.transparentTargets ? (cls + " transparent-marker") : "dropoff";
+        cls += " front-marker";
+    }
+    if(wallHere) cls = "wall";
+    if(startBaseHere) cls += " start-base";
+    if(mountainAt(col,row) && !L.fullMountainBackdrop) cls = "mountain";
+    if(isGoal && !stationHere && !airportHere && !dropoffHere) cls += " goal";
+    return cls;
+}
+
+function tileIcon(col,row,L){
+    const m = mountainAt(col,row);
+    if(m && !L.fullMountainBackdrop) return `<div class="mountain-scene"><span class="peak peak-back"></span><span class="peak peak-front-left"></span><span class="peak peak-front-right"></span></div><span class="mountain-height">${m.h}</span>`;
+    const isGoal = same(L.goal,[col,row]);
+    if(hasCoord(L.stations,col,row)) return (L.showGoalStar && isGoal) ? `<span class="target-icon">⭐</span>` : (L.stationIcon === "target" ? `<span class="target-icon">🎯</span>` : "🚉");
+    if(hasCoord(L.pickups,col,row)) return "📦";
+    if(hasCoord(L.dropoffs,col,row)){
+        const clock = typeof L.deliverTime === "number" ? `<span class="clock-badge">⏰${formatTime(L.deliverTime)}</span>` : "";
+        const icon = L.customDropoffIcon || (L.showGoalStar && isGoal ? "⭐" : "🎯");
+        return `<span class="target-icon">${icon}</span>${clock}`;
+    }
+    if(hasCoord(L.airports,col,row)) return L.airportStyle === "runway" ? (same(L.start,[col,row]) ? "" : (L.showGoalStar && isGoal ? `<span class="target-icon">⭐</span>` : `<span class="target-icon">🎯</span>`)) : "🛬";
+    if(hasCoord(L.bases,col,row) || same(L.start,[col,row]) && L.showStartBase) return "🏠";
+    if(isGoal) return L.goalIcon || "⭐";
+    if(hasCoord(L.walls,col,row)) return "🧱";
+    return "";
+}
+
+function drawMountainBackdrop(L){
+    if(!L.fullMountainBackdrop) return;
+
+    const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    svg.setAttribute("class", "terrain-layer");
+    svg.setAttribute("viewBox", "0 0 100 100");
+    svg.setAttribute("preserveAspectRatio", "none");
+
+    svg.innerHTML = `
+        <defs>
+            <linearGradient id="mountSky" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#dbeafe" stop-opacity=".55" />
+                <stop offset="100%" stop-color="#93c5fd" stop-opacity=".25" />
+            </linearGradient>
+            <linearGradient id="mountFar" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#94a3b8" />
+                <stop offset="100%" stop-color="#64748b" />
+            </linearGradient>
+            <linearGradient id="mountNear" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#475569" />
+                <stop offset="100%" stop-color="#1e293b" />
+            </linearGradient>
+        </defs>
+
+        <rect x="0" y="0" width="100" height="100" fill="url(#mountSky)" />
+
+        <path d="M0 72 L8 65 L15 61 L24 55 L33 60 L42 50 L51 56 L59 45 L67 35 L75 44 L84 53 L92 60 L100 64 L100 100 L0 100 Z"
+              fill="url(#mountFar)" opacity=".78" />
+
+        <path d="M0 86 L9 80 L17 75 L25 68 L35 63 L44 67 L52 54 L61 27 L70 49 L78 58 L86 66 L94 73 L100 76 L100 100 L0 100 Z"
+              fill="url(#mountNear)" opacity=".94" />
+
+        <path d="M52 54 L61 27 L70 49 L66 45 L61 35 L57 45 Z"
+              fill="rgba(255,255,255,.75)" />
+
+        <g transform="translate(61 24)">
+            <rect x="-16" y="-8" width="32" height="16" rx="8"
+                  fill="rgba(15,23,42,.92)" stroke="rgba(255,255,255,.35)" stroke-width="0.9" />
+            <text x="0" y="4.4" text-anchor="middle" font-size="6.4"
+                  font-weight="900" fill="#ffffff">Visina ${L.maxMountainHeight || 5}</text>
+        </g>
+    `;
+
+    board.appendChild(svg);
+}
+
+function drawRouteLayer(L){
+    const route = L.path || L.waterPath;
+    if(!route || route.length < 2) return;
+
+    const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    svg.setAttribute("class", "route-layer");
+    svg.setAttribute("viewBox", `0 0 ${GRID} ${GRID}`);
+    svg.setAttribute("preserveAspectRatio", "none");
+
+    const breakPoints = new Set();
+    if(L.eraseRouteOnStations){
+        for(const p of (L.stations || [])) breakPoints.add(`${p[0]},${p[1]}`);
+    }
+    if(L.eraseRouteOnTargets){
+        for(const p of (L.dropoffs || [])) breakPoints.add(`${p[0]},${p[1]}`);
+    }
+
+    function center(p){ return [p[0] + 0.5, p[1] + 0.5]; }
+    function key(p){ return `${p[0]},${p[1]}`; }
+    function dirFromTo(a,b){
+        const dx = Math.sign(b[0] - a[0]);
+        const dy = Math.sign(b[1] - a[1]);
+        return [dx,dy];
+    }
+
+    // Segmenti pamte gdje je prekid, da linija stane tačno do ruba stanice,
+    // ali da nikad ne ide preko same stanice/mete.
+    const segments = [];
+    let current = [];
+    let beforeBreak = null;
+
+    for(let i=0;i<route.length;i++){
+        const p = route[i];
+
+        if(breakPoints.has(key(p))){
+            if(current.length){
+                segments.push({points:current, beforeBreak:null, afterBreak:p});
+                current = [];
+            }
+            beforeBreak = p;
+            continue;
+        }
+
+        if(current.length === 0){
+            segments.push; // no-op, samo da bude jasno da segment počinje nakon mogućeg prekida
+            current.beforeBreak = beforeBreak;
+        }
+        current.push(p);
+
+        const next = route[i+1];
+        if(!next || (next && breakPoints.has(key(next)))){
+            const segBefore = current.beforeBreak || beforeBreak;
+            const segAfter = next && breakPoints.has(key(next)) ? next : null;
+            segments.push({points:current, beforeBreak:segBefore, afterBreak:segAfter});
+            current = [];
+            beforeBreak = next && breakPoints.has(key(next)) ? next : null;
+        }
+    }
+
+    if(!breakPoints.size){
+        segments.length = 0;
+        segments.push({points:route, beforeBreak:null, afterBreak:null});
+    }
+
+    function convertSegment(seg, isOnlySegment){
+        const pts = seg.points.map(center);
+        if(pts.length < 1) return [];
+
+        if(pts.length >= 2){
+            // Produži samo pravi početak/ kraj cijele rute preko cijelog bloka.
+            // Kod prekida produži samo do ruba susjednog bloka, ne preko stanice.
+            if(!seg.beforeBreak){
+                const d = dirFromTo(seg.points[0], seg.points[1]);
+                pts[0] = [pts[0][0] - d[0], pts[0][1] - d[1]];
+            }else{
+                const d = dirFromTo(seg.beforeBreak, seg.points[0]);
+                pts[0] = [pts[0][0] - d[0]*0.5, pts[0][1] - d[1]*0.5];
+            }
+
+            const n = pts.length - 1;
+            if(!seg.afterBreak){
+                const d = dirFromTo(seg.points[n-1], seg.points[n]);
+                pts[n] = [pts[n][0] + d[0], pts[n][1] + d[1]];
+            }else{
+                const d = dirFromTo(seg.points[n], seg.afterBreak);
+                pts[n] = [pts[n][0] + d[0]*0.5, pts[n][1] + d[1]*0.5];
+            }
+        }
+
+        return pts;
+    }
+
+    function addLine(cls, points){
+        if(points.length < 2) return;
+        const line = document.createElementNS("http://www.w3.org/2000/svg", "polyline");
+        line.setAttribute("points", points.map(p => `${p[0]},${p[1]}`).join(" "));
+        line.setAttribute("class", cls);
+        line.setAttribute("vector-effect", "non-scaling-stroke");
+        svg.appendChild(line);
+    }
+
+    for(const seg of segments){
+        const pts = convertSegment(seg, segments.length === 1);
+        if(L.path){
+            addLine("rail-line", pts);
+            addLine("rail-highlight", pts);
+        }else{
+            addLine("water-line", pts);
+        }
+    }
+
+    board.appendChild(svg);
+}
+
+function resetState(hide=true){
+    const L = level();
+    x = L.start[0];
+    y = L.start[1];
+    dir = L.dir ?? 0;
+    fuel = typeof L.fuel === "number" ? L.fuel : null;
+    initialFuel = fuel;
+    altitude = 0;
+    carrying = L.carryingStart || 0;
+    delivered = 0;
+    trainStarted = !L.requireStart;
+    stopped = false;
+    landed = false;
+    stationStops = [];
+    failed = false;
+    completing = false;
+    if(entity) entity.classList.remove("glow");
+    running = false;
+    packagesLeftAtHub = L.totalPackages || 99;
+    gameTime = typeof L.startTime === "number" ? L.startTime : null;
+    reachedGoalBeforeReturn = false;
+    completedPickupSpots = [];
+    if(entity) entity.classList.remove("glow");
+    if(hide) hideOverlay();
+    hideStatusFloat();
+    updateEntity();
+    updateHud();
+    updatePackageIndicator();
+}
+
+function updateEntity(){
+    if(!entity) return;
+    const s = tileSize();
+    entity.style.left = (x*s + s*.11) + "px";
+    entity.style.top = (y*s + s*.11) + "px";
+    if(level().mode === "train") entity.style.transform = "rotate(0deg)";
+    else if(level().mode === "ship") entity.style.transform = `rotate(${dir*90}deg) scaleX(-1)`;
+    else entity.style.transform = `rotate(${dir*90}deg)`;
+}
+
+function updateHudVisibility(){
+    const L = level();
+    setBox("fuelBox", false);
+    setBox("altBox", false);
+    setBox("pkgBox", false);
+    setBox("timeBox", false);
+    const fuelPill = document.getElementById("boardFuel");
+    const altPill = document.getElementById("boardAlt");
+    const timePill = document.getElementById("boardTime");
+    if(fuelPill) fuelPill.classList.toggle("show", typeof L.fuel === "number");
+    if(altPill) altPill.classList.toggle("show", L.mode === "aircraft");
+    if(timePill) timePill.classList.toggle("show", typeof L.startTime === "number");
+}
+
+function setBox(id, show){
+    document.getElementById(id).classList.toggle("active", !!show);
+}
+
+function updateHud(){
+    document.getElementById("fuelHud").textContent = fuel === null ? "—" : fuel;
+    const fuelFill = document.getElementById("fuelMeterFill");
+    const fuelBox = document.getElementById("fuelBox");
+    if(fuelFill){
+        const pct = (fuel === null || !initialFuel) ? 100 : Math.max(0, Math.min(100, Math.round((fuel/initialFuel)*100)));
+        fuelFill.style.width = pct + "%";
+    }
+    if(fuelBox){
+        fuelBox.classList.toggle("low-fuel", fuel !== null && initialFuel && fuel <= Math.max(3, Math.ceil(initialFuel*.25)));
+    }
+    document.getElementById("altHud").textContent = altitude;
+    document.getElementById("pkgHud").textContent = packageText();
+    document.getElementById("timeHud").textContent = gameTime === null ? "—" : formatTime(gameTime);
+    updatePackageIndicator();
+    updateTopInfo();
+}
+
+function packageText(){
+    const L = level();
+    const required = L.success?.required || L.totalPackages || 1;
+    return `${carrying}/${L.capacity||1} | ${delivered}/${required}`;
+}
+
+function updatePackageIndicator(){
+    if(!carryIndicator) return;
+    carryIndicator.classList.toggle("show", carrying > 0);
+}
+
+function animatePickup(){
+    showStatusFloat("Paket preuzet ✓");
+    updatePackageIndicator();
+    if(carryIndicator){
+        carryIndicator.classList.remove("pickup-pop");
+        void carryIndicator.offsetWidth;
+        carryIndicator.classList.add("pickup-pop");
+    }
+    if(entity){
+        entity.classList.remove("package-pop");
+        void entity.offsetWidth;
+        entity.classList.add("package-pop");
+        setTimeout(()=>{ if(entity) entity.classList.remove("package-pop"); }, 420);
+    }
+}
+
+function formatTime(mins){
+    const h = Math.floor(mins/60)%24;
+    const m = mins%60;
+    return String(h).padStart(2,"0") + ":" + String(m).padStart(2,"0");
+}
+
+function updateTopInfo(){
+    const fuelPill = document.getElementById("boardFuel");
+    const altPill = document.getElementById("boardAlt");
+    const timePill = document.getElementById("boardTime");
+    if(fuelPill){
+        const showFuel = fuel !== null;
+        fuelPill.classList.toggle("show", showFuel);
+        fuelPill.textContent = `⛽ Gorivo: ${showFuel ? fuel : "—"}`;
+        fuelPill.classList.toggle("low-fuel", showFuel && initialFuel && fuel <= Math.max(3, Math.ceil(initialFuel*.25)));
+    }
+    if(altPill){
+        const showAlt = level().mode === "aircraft";
+        altPill.classList.toggle("show", showAlt);
+        altPill.textContent = `⬆ Visina: ${altitude}`;
+    }
+    if(timePill){
+        const showTime = gameTime !== null;
+        timePill.classList.toggle("show", showTime);
+        timePill.textContent = `⏰ Vrijeme: ${showTime ? formatTime(gameTime) : "—"}`;
+    }
+}
+
+function modeName(mode){
+    return {
+        robot:"Robot",
+        train:"Voz",
+        aircraft:"Avion",
+        ship:"Brod",
+        keyboard:"Svemirski brod",
+        keyProgram:"Svemirski brod",
+        droneBlocks:"Svemirski brod"
+    }[mode] || mode;
+}
+
+Blockly.defineBlocksWithJsonArray([
+{type:"move_forward",message0:"⬆ idi naprijed",previousStatement:null,nextStatement:null,colour:210},
+{type:"move_forward_right",message0:"➡ idi naprijed",previousStatement:null,nextStatement:null,colour:210},
+{type:"move_back",message0:"⬇ idi nazad",previousStatement:null,nextStatement:null,colour:210},
+{type:"move_up",message0:"⬆ idi gore",previousStatement:null,nextStatement:null,colour:210},
+{type:"move_down",message0:"⬇ idi dole",previousStatement:null,nextStatement:null,colour:210},
+{type:"move_left",message0:"⬅ idi lijevo",previousStatement:null,nextStatement:null,colour:210},
+{type:"move_right",message0:"➡ idi desno",previousStatement:null,nextStatement:null,colour:210},
+{type:"train_left",message0:"⬆ skreni lijevo",previousStatement:null,nextStatement:null,colour:30},
+{type:"train_right",message0:"⬇ skreni desno",previousStatement:null,nextStatement:null,colour:30},
+{type:"turn_left",message0:"↶ okreni se lijevo",previousStatement:null,nextStatement:null,colour:25},
+{type:"turn_right",message0:"↷ okreni se desno",previousStatement:null,nextStatement:null,colour:25},
+{type:"go",message0:"🚆 ➡ idi naprijed",previousStatement:null,nextStatement:null,colour:30},
+{type:"stop",message0:"🛑 zaustavi",previousStatement:null,nextStatement:null,colour:0},
+{type:"train_start",message0:"▶ pokreni voz",previousStatement:null,nextStatement:null,colour:120},
+{type:"diag_left",message0:"⬉ idi dijagonalno lijevo",previousStatement:null,nextStatement:null,colour:290},
+{type:"diag_right",message0:"⬈ idi dijagonalno desno",previousStatement:null,nextStatement:null,colour:290},
+{type:"alt_up",message0:"🛫 podigni se",previousStatement:null,nextStatement:null,colour:190},
+{type:"alt_down",message0:"🛬 spusti se",previousStatement:null,nextStatement:null,colour:190},
+{type:"land",message0:"🏁 sleti",previousStatement:null,nextStatement:null,colour:65},
+{type:"pickup",message0:"📦 preuzmi paket",previousStatement:null,nextStatement:null,colour:260},
+{type:"unload",message0:"📭 istovari paket",previousStatement:null,nextStatement:null,colour:330},
+{type:"wait",message0:"⏱ čekaj 10 min",previousStatement:null,nextStatement:null,colour:45},
+{type:"repeat_times",message0:"ponovi %1 puta %2 uradi %3",args0:[{type:"field_number",name:"TIMES",value:3,min:1,max:20},{type:"input_dummy"},{type:"input_statement",name:"DO"}],previousStatement:null,nextStatement:null,colour:120},
+{type:"while_goal",message0:"dok nisi na cilju %1 uradi %2",args0:[{type:"input_dummy"},{type:"input_statement",name:"DO"}],previousStatement:null,nextStatement:null,colour:160},
+{type:"while_target",message0:"sve dok nisi na %1 %2 uradi %3",args0:[{type:"field_dropdown",name:"TARGET",options:[["🎯 stanici","DROPOFF"],["🏠 kući","HOME"]]},{type:"input_dummy"},{type:"input_statement",name:"DO"}],previousStatement:null,nextStatement:null,colour:160},
+{type:"if_key_pressed",message0:"tipka %1 %2 uradi %3",args0:[{type:"field_dropdown",name:"KEY",options:[["↑ / W","UP"],["↓ / S","DOWN"],["← / A","LEFT"],["→ / D","RIGHT"]]},{type:"input_dummy"},{type:"input_statement",name:"DO"}],colour:200}
+]);
+
+const workspace = Blockly.inject("blocklyDiv",{
+    toolbox:document.getElementById("toolbox"),
+    trashcan:true,
+    scrollbars:true
+});
+
+function updateToolbox(){
+    let names = [...(level().toolbox || [])];
+    if(currentLevel >= 2 && names.length > 0 && !level().noAutoRepeat && !names.includes("repeat")){
+        names.push("repeat");
+    }
+    const map = {
+        move_forward:'<block type="move_forward"></block>',
+        move_forward_right:'<block type="move_forward_right"></block>',
+        move_back:'<block type="move_back"></block>',
+        move_up:'<block type="move_up"></block>',
+        move_down:'<block type="move_down"></block>',
+        move_left:'<block type="move_left"></block>',
+        move_right:'<block type="move_right"></block>',
+        train_left:'<block type="train_left"></block>',
+        train_right:'<block type="train_right"></block>',
+        turn_left:'<block type="turn_left"></block>',
+        turn_right:'<block type="turn_right"></block>',
+        go:'<block type="go"></block>',
+        stop:'<block type="stop"></block>',
+        train_start:'<block type="train_start"></block>',
+        diag_left:'<block type="diag_left"></block>',
+        diag_right:'<block type="diag_right"></block>',
+        alt_up:'<block type="alt_up"></block>',
+        alt_down:'<block type="alt_down"></block>',
+        land:'<block type="land"></block>',
+        pickup:'<block type="pickup"></block>',
+        unload:'<block type="unload"></block>',
+        wait:'<block type="wait"></block>',
+        repeat:'<block type="repeat_times"></block>',
+        while_goal:'<block type="while_goal"></block>',
+        while_target:'<block type="while_target"></block>',
+        if_key_pressed:'<block type="if_key_pressed"></block>'
+    };
+    workspace.updateToolbox("<xml>" + names.map(n=>map[n]||"").join("") + "</xml>");
+}
+
+function commandsFromWorkspace(){
+    const top = workspace.getTopBlocks(true);
+    const list = [];
+    top.forEach(block=>list.push(...commandsFromBlockChain(block)));
+    return list;
+}
+
+function commandsFromBlockChain(block){
+    const list = [];
+    let current = block;
+    while(current){
+        list.push(...commandFromBlock(current));
+        current = current.getNextBlock();
+    }
+    return list;
+}
+
+function statementCommands(block, inputName){
+    const child = block.getInputTargetBlock(inputName);
+    if(!child) return [];
+    return commandsFromBlockChain(child);
+}
+
+function atGoalTile(){
+    return same([x,y], level().goal);
+}
+
+function atSelectedTarget(target){
+    const L = level();
+    if(target === "DROPOFF") return hasCoord(L.dropoffs,x,y);
+    if(target === "HOME") return same([x,y],L.start);
+    return same([x,y],L.goal);
+}
+
+function commandsForKey(keyName){
+    const top = workspace.getTopBlocks(true);
+    const list = [];
+    top.forEach(block=>{
+        if(block.type === "if_key_pressed" && block.getFieldValue("KEY") === keyName){
+            list.push(...statementCommands(block,"DO"));
+        }
+    });
+    return list;
+}
+
+function commandFromBlock(block){
+    const type = block.type;
+    const simple = {
+        move_forward:"forward",
+        move_forward_right:"forward",
+        move_back:"back",
+        move_up:"up",
+        move_down:"down",
+        move_left:"left",
+        move_right:"right",
+        train_left:"left",
+        train_right:"right",
+        turn_left:"turnLeft",
+        turn_right:"turnRight",
+        go:"go",
+        stop:"stop",
+        train_start:"trainStart",
+        diag_left:"diagLeft",
+        diag_right:"diagRight",
+        alt_up:"altUp",
+        alt_down:"altDown",
+        land:"land",
+        pickup:"pickup",
+        unload:"unload",
+        wait:"wait"
+    };
+    if(simple[type]) return [{type:simple[type]}];
+    if(type === "repeat_times"){
+        return [{type:"repeat", times:Number(block.getFieldValue("TIMES"))||1, body:statementCommands(block,"DO")}];
+    }
+    if(type === "while_goal"){
+        return [{type:"whileGoal", body:statementCommands(block,"DO")}];
+    }
+    if(type === "while_target"){
+        return [{type:"whileTarget", target:block.getFieldValue("TARGET"), body:statementCommands(block,"DO")}];
+    }
+    if(type === "if_key_pressed") return [];
+    return [];
+}
+
+async function runCode(){
+    if(running || level().mode === "keyboard") return;
+    resetState(true);
+    running = true;
+    const commands = commandsFromWorkspace();
+    await executeList(commands,0);
+    if(!failed && !completing) checkSuccess(true);
+    running = false;
+}
+
+function delayAfterAction(action){
+    if(level().mode === "train" || level().mode === "ship") return 760;
+    if(action.type === "altUp" || action.type === "altDown") return 950;
+    return 230;
+}
+
+async function executeList(list, depth){
+    if(depth > 20){ fail("Petlja je preduboka."); return; }
+    for(const action of list){
+        if(failed || completing) return;
+        if(action.type === "repeat"){
+            for(let i=0;i<action.times;i++){
+                await executeList(action.body, depth+1);
+                if(failed) return;
+            }
+        }else if(action.type === "whileGoal"){
+            let guard = 0;
+            while(!atGoalTile() && !failed && guard < 60){
+                await executeList(action.body, depth+1);
+                guard++;
+            }
+            if(guard >= 60) fail("Petlja se ponovila previše puta.");
+        }else if(action.type === "whileTarget"){
+            let guard = 0;
+            while(!atSelectedTarget(action.target) && !failed && guard < 60){
+                await executeList(action.body, depth+1);
+                guard++;
+            }
+            if(guard >= 60) fail("Petlja se ponovila previše puta.");
+        }else{
+            await executeAction(action);
+        }
+        await sleep(delayAfterAction(action));
+    }
+}
+
+function recordStationStop(){
+    const L = level();
+    if(!L.requiredStops) return;
+    const i = L.requiredStops.findIndex(p=>p[0]===x && p[1]===y);
+    if(i >= 0 && !stationStops.includes(i)){
+        stationStops.push(i);
+        showStatusFloat(`Stanica ${stationStops.length}/${L.requiredStops.length}`);
+    }
+}
+
+async function executeAction(action){
+    const L = level();
+    const isMoveAction = ["forward","back","left","right","up","down","diagLeft","diagRight","go"].includes(action.type);
+    if(isMoveAction && typeof L.earliestDeparture === "number" && same([x,y],L.start) && gameTime !== null && gameTime < L.earliestDeparture){
+        return fail(`Ne smiješ krenuti prije ${formatTime(L.earliestDeparture)}.`);
+    }
+    if(action.type === "trainStart") { trainStarted = true; pulse("▶"); return; }
+    if(action.type === "stop") { stopped = true; recordStationStop(); if(entity && L.mode === "train") entity.classList.add("glow"); else pulse("🛑"); checkSuccess(false); return; }
+    if(action.type === "pickup") { pickup(); return; }
+    if(action.type === "unload") { unload(); return; }
+    if(action.type === "wait") { gameTime = (gameTime ?? 0) + 10; updateHud(); pulse("⏱"); return; }
+    if(action.type === "land") { land(); return; }
+    if(action.type === "altUp") { altitude++; spendFuel(); showStatusFloat(`Visina ${altitude}`); pulse("⬆"); return; }
+    if(action.type === "altDown") { altitude = Math.max(0,altitude-1); spendFuel(); showStatusFloat(`Visina ${altitude}`); pulse("⬇"); return; }
+
+    if(L.mode === "train"){
+        if(!trainStarted) return fail("Voz nije pokrenut. Prvo dodaj blok pokreni voz.");
+        if(action.type === "left") return moveBy(0,-1,true);
+        if(action.type === "right") return moveBy(0,1,true);
+        if(action.type === "turnLeft") { dir = (dir+3)%4; updateEntity(); return; }
+        if(action.type === "turnRight") { dir = (dir+1)%4; updateEntity(); return; }
+        if(action.type === "diagLeft") return moveBy(1,-1,true);
+        if(action.type === "diagRight") return moveBy(1,1,true);
+        if(action.type === "go" || action.type === "forward") return moveBy(1,0,true);
+    }
+
+    if(L.mode === "ship"){
+        if(action.type === "turnLeft") { dir=(dir+3)%4; updateEntity(); return; }
+        if(action.type === "turnRight") { dir=(dir+1)%4; updateEntity(); return; }
+        if(action.type === "diagLeft") return moveBy(1,-1,true);
+        if(action.type === "diagRight") return moveBy(1,1,true);
+        if(action.type === "forward" || action.type === "go") return moveBy(dirDx(),dirDy(),true);
+    }
+
+    if(L.mode === "aircraft"){
+        if(action.type === "forward") return moveBy(1,0,true);
+        if(action.type === "up" || action.type === "left") return moveBy(0,-1,true);
+        if(action.type === "down" || action.type === "right") return moveBy(0,1,true);
+        if(action.type === "diagLeft") return moveBy(1,-1,true);
+        if(action.type === "diagRight") return moveBy(1,1,true);
+    }
+
+    if(L.mode === "keyProgram"){
+        if(action.type === "up") return moveBy(0,-1,true);
+        if(action.type === "down") return moveBy(0,1,true);
+        if(action.type === "left") return moveBy(-1,0,true);
+        if(action.type === "right") return moveBy(1,0,true);
+    }
+
+    if(L.mode === "droneBlocks"){
+        if(action.type === "forward") return moveBy(0,-1,true);
+        if(action.type === "back") return moveBy(0,1,true);
+        if(action.type === "left") return moveBy(-1,0,true);
+        if(action.type === "right") return moveBy(1,0,true);
+        if(action.type === "down") return moveBy(0,1,true);
+    }
+
+    if(L.mode === "robot"){
+        if(action.type === "turnLeft") { dir = (dir+3)%4; updateEntity(); return; }
+        if(action.type === "turnRight") { dir = (dir+1)%4; updateEntity(); return; }
+        if(action.type === "forward") return moveBy(dirDx(),dirDy(),false);
+    }
+}
+
+function dirDx(){ return [1,0,-1,0][dir]; }
+function dirDy(){ return [0,1,0,-1][dir]; }
+
+function moveBy(dx,dy,spend=true){
+    const nx = x + dx;
+    const ny = y + dy;
+    if(nx<0 || nx>=GRID || ny<0 || ny>=GRID) return fail("Izašao si van mape.");
+    if(!canEnter(nx,ny)) return;
+    x = nx; y = ny;
+    if((level().mode === "train" || level().mode === "ship") && entity){
+        entity.classList.add("rolling");
+        setTimeout(()=>{ if(entity) entity.classList.remove("rolling"); }, 760);
+    }
+    if((level().mode === "aircraft" || level().vehicle === "drone") && entity){
+        entity.classList.add("flying");
+        setTimeout(()=>{ if(entity) entity.classList.remove("flying"); }, 720);
+    }
+    if(spend) spendFuel();
+    updateEntity();
+    if(same([x,y], level().goal)) reachedGoalBeforeReturn = true;
+    updateHud();
+    checkSuccess(false);
+}
+
+function canEnter(nx,ny){
+    const L = level();
+    if(hasCoord(L.walls,nx,ny)) return fail("Udario si u prepreku.");
+    if(L.mode === "train" && !hasCoord(L.path,nx,ny)) return fail("Voz je sišao sa pruge.");
+    if(L.mode === "ship" && L.waterPath && !hasCoord(L.waterPath,nx,ny)) return fail("Brod je izašao iz plovne rute.");
+    const m = mountainAt(nx,ny);
+    if(m && altitude < m.h) return fail(`Visina ${altitude} nije dovoljna za planinu ${m.h}.`);
+    return true;
+}
+
+function spendFuel(){
+    if(fuel === null) return;
+    fuel--;
+    updateHud();
+    if(fuel < 0) fail("Nestalo je goriva.");
+}
+
+function pickup(){
+    const L = level();
+    if(!hasCoord(L.pickups,x,y)) return fail("Nisi na mjestu za preuzimanje paketa.");
+    if(carrying >= (L.capacity||1)) return fail("Kapacitet je pun.");
+    const spotKey = `${x},${y}`;
+    if(L.onePackagePerPickup && completedPickupSpots.includes(spotKey)) return fail("Ovaj paket je već preuzet.");
+    if(packagesLeftAtHub <= 0) return fail("Nema više paketa za preuzimanje.");
+    carrying++;
+    packagesLeftAtHub--;
+    if(L.onePackagePerPickup) completedPickupSpots.push(spotKey);
+    pulse("📦");
+    updateHud();
+    animatePickup();
+}
+
+function unload(){
+    const L = level();
+    if(carrying <= 0) return fail("Nemaš paket za istovar.");
+    if(!hasCoord(L.dropoffs,x,y)) return fail("Nisi na mjestu za istovar paketa.");
+    const effectiveTime = typeof L.travelTime === "number" ? (gameTime ?? 0) + L.travelTime : gameTime;
+    if(typeof L.deliverTime === "number" && effectiveTime !== L.deliverTime){
+        return fail(`Dostava mora stići tačno u ${formatTime(L.deliverTime)}.`);
+    }
+    carrying--;
+    delivered++;
+    pulse("📭");
+    showStatusFloat("Paket isporučen ✓");
+    updateHud();
+    checkSuccess(false);
+}
+
+function land(){
+    const L = level();
+    if(!hasCoord(L.airports,x,y)) return fail("Možeš sletjeti samo na aerodrom.");
+    if(altitude !== 0) return fail("Prije slijetanja spusti visinu na 0.");
+    landed = true;
+    pulse("🏁");
+    checkSuccess(false);
+}
+
+function targetReached(){
+    const L = level();
+    if(L.success?.type?.includes("delivered")) return delivered >= (L.success.required||1);
+    return same([x,y],L.goal);
+}
+
+function checkSuccess(finalCheck){
+    const L = level();
+    const S = L.success || {type:"goal"};
+    let ok = false;
+    if(S.type === "goal") ok = same([x,y],L.goal);
+    if(S.type === "stoppedAtGoal") ok = same([x,y],L.goal) && stopped;
+    if(S.type === "stoppedAtRequiredStations") ok = same([x,y],L.goal) && stopped && stationStops.length >= (L.requiredStops||[]).length;
+    if(S.type === "landedAtGoal") ok = same([x,y],L.goal) && landed;
+    if(S.type === "delivered") ok = delivered >= (S.required||1);
+    if(S.type === "deliveredAndGoal") ok = delivered >= (S.required||1) && same([x,y],L.goal);
+    if(S.type === "goalAndReturn") ok = reachedGoalBeforeReturn && same([x,y],L.start);
+    if(S.type === "deliveredAndReturn") ok = delivered >= (S.required||1) && same([x,y],L.start);
+    if(ok) completeLevel();
+    else if(finalCheck && L.mode === "aircraft" && !landed) fail("Avion nije sletio. Dodaj spuštanje do visine 0, zatim blok sleti.");
+}
+
+function completeLevel(){
+    if(failed || completing) return;
+    completing = true;
+    showOverlay("✅ Bravo!", "Nivo je završen. Učitava se sljedeći...");
+    setTimeout(()=>{
+        hideOverlay();
+        currentLevel++;
+        if(currentLevel >= levels.length){
+            currentLevel = 0;
+            alert("Završio si svih 20 nivoa!");
+        }
+        workspace.clear();
+        renderLevel();
+    },1200);
+}
+
+function fail(msg){
+    failed = true;
+    showOverlay("❌ Pokušaj ponovo", msg);
+    setTimeout(()=>{ hideOverlay(); resetState(false); },1400);
+    return false;
+}
+
+function pulse(txt){
+    if(!entity) return;
+    const old = level().icon;
+    entity.textContent = txt;
+    setTimeout(()=>{ if(entity) entity.textContent = old; },250);
+}
+
+function showOverlay(title,text){
+    document.getElementById("overlayTitle").textContent = title;
+    document.getElementById("overlayText").textContent = text;
+    document.getElementById("overlay").style.display = "flex";
+}
+
+function hideOverlay(){
+    document.getElementById("overlay").style.display = "none";
+}
+
+function showStatusFloat(text){
+    const el = document.getElementById("statusFloat");
+    if(!el) return;
+    el.textContent = text;
+    el.classList.add("show");
+    clearTimeout(statusFloatTimer);
+    statusFloatTimer = setTimeout(()=> el.classList.remove("show"), 1500);
+}
+
+function hideStatusFloat(){
+    const el = document.getElementById("statusFloat");
+    if(!el) return;
+    el.classList.remove("show");
+    clearTimeout(statusFloatTimer);
+}
+
+function resetLevel(){
+    resetState(true);
+}
+
+function sleep(ms){
+    return new Promise(resolve=>setTimeout(resolve,ms));
+}
+
+function populateLevelSelector(){
+    const select = document.getElementById("levelSelect");
+    select.innerHTML = "";
+    for(let i=0;i<levels.length;i++){
+        const opt = document.createElement("option");
+        opt.value = i;
+        opt.textContent = `Nivo ${i+1}`;
+        select.appendChild(opt);
+    }
+}
+
+function jumpToLevel(){
+    currentLevel = Number(document.getElementById("levelSelect").value);
+    workspace.clear();
+    renderLevel();
+}
+
+window.addEventListener("resize", updateEntity);
+
+function keyDirectionName(e){
+    if(["ArrowUp","w","W"].includes(e.key)) return "UP";
+    if(["ArrowDown","s","S"].includes(e.key)) return "DOWN";
+    if(["ArrowLeft","a","A"].includes(e.key)) return "LEFT";
+    if(["ArrowRight","d","D"].includes(e.key)) return "RIGHT";
+    return null;
+}
+
+window.addEventListener("keydown", async e=>{
+    const L = level();
+    if(failed || running || completing) return;
+
+    let handled = false;
+
+    if(L.mode === "keyboard"){
+        if(["ArrowUp","w","W"].includes(e.key)){ moveBy(0,-1,true); handled = true; }
+        else if(["ArrowDown","s","S"].includes(e.key)){ moveBy(0,1,true); handled = true; }
+        else if(["ArrowLeft","a","A"].includes(e.key)){ moveBy(-1,0,true); handled = true; }
+        else if(["ArrowRight","d","D"].includes(e.key)){ moveBy(1,0,true); handled = true; }
+        else if(e.code === "Space"){
+            if(hasCoord(L.pickups,x,y)){ pickup(); handled = true; }
+            else if(hasCoord(L.dropoffs,x,y)){ unload(); handled = true; }
+        }
+    }
+
+    if(L.mode === "keyProgram"){
+        const key = keyDirectionName(e);
+        if(key){
+            const commands = commandsForKey(key);
+            if(commands.length > 0){
+                running = true;
+                await executeList(commands,0);
+                running = false;
+            }
+            handled = true;
+        }
+    }
+
+    if(handled) e.preventDefault();
+});
+
+populateLevelSelector();
+renderLevel();
+</script>
+</body>
+</html>
+
