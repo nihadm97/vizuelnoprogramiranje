@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Programerska avantura vozila</title>
+<title>Vizuelno programiranje</title>
 <script src="https://unpkg.com/blockly/blockly.min.js"></script>
 
 <style>
@@ -748,12 +748,42 @@ button:hover{
     .game-panel{min-height:calc(var(--board-size) + 360px);}
     .editor-panel{height:560px;}
 }
+
+/* v31: vizuelne oznake težine nivoa bez tekstualnih oznaka */
+:root{
+    --difficulty-easy:#22c55e;
+    --difficulty-medium:#f97316;
+    --difficulty-hard:#ef4444;
+}
+.level-select.diff-easy,
+.pill.diff-easy{
+    border-color:rgba(34,197,94,.95)!important;
+    box-shadow:0 0 0 3px rgba(34,197,94,.18);
+}
+.level-select.diff-medium,
+.pill.diff-medium{
+    border-color:rgba(249,115,22,.95)!important;
+    box-shadow:0 0 0 3px rgba(249,115,22,.18);
+}
+.level-select.diff-hard,
+.pill.diff-hard{
+    border-color:rgba(239,68,68,.95)!important;
+    box-shadow:0 0 0 3px rgba(239,68,68,.18);
+}
+.mission-card.diff-easy{border:3px solid var(--difficulty-easy);}
+.mission-card.diff-medium{border:3px solid var(--difficulty-medium);}
+.mission-card.diff-hard{border:3px solid var(--difficulty-hard);}
+.level-select option.diff-easy{background:#dcfce7;color:#14532d;}
+.level-select option.diff-medium{background:#ffedd5;color:#7c2d12;}
+.level-select option.diff-hard{background:#fee2e2;color:#7f1d1d;}
+.level-select option:checked{font-weight:900;}
+
 </style>
 </head>
 
 <body>
 <div class="topbar">
-    <div class="logo"><span class="logo-badge"><img class="logo-img" src="https://nihadm97.github.io/Portfolio/static/media/logo.7156bdbd7cb0672472b8.png" alt="Logo"></span> Programerska avantura vozila</div>
+    <div class="logo"><span class="logo-badge"><img class="logo-img" src="https://nihadm97.github.io/Portfolio/static/media/logo.7156bdbd7cb0672472b8.png" alt="Logo"></span> Vizuelno programiranje</div>
     <div class="top-info">
         <div class="pill" id="levelIndicator">Nivo 1 / 20</div>
         <div class="pill" id="modeIndicator">Robot</div>
@@ -900,6 +930,7 @@ const levels = [
     transparentStations:true,
     stationFront:true,
     eraseRouteOnStations:true,
+    routeNoOverhang:true,
     stationIcon:"target",
     requiredStops:[[3,6],[7,4]],
     requireStart:true, success:{type:"stoppedAtRequiredStations"}
@@ -1183,6 +1214,7 @@ function renderLevel(){
     document.getElementById("missionTitle").textContent = L.name;
     document.getElementById("missionSub").textContent = L.mission;
     document.getElementById("levelSelect").value = currentLevel;
+    applyDifficultyUI();
     const helpBox = document.getElementById("keyboardHelp");
     if(L.mode === "keyboard"){
         helpBox.innerHTML = "<b>Upravljanje tastaturom</b><br>WASD ili strelice = kretanje<br>Razmaknica = preuzmi / istovari";
@@ -1455,8 +1487,10 @@ function drawRouteLayer(L){
             // Produži samo pravi početak/ kraj cijele rute preko cijelog bloka.
             // Kod prekida produži samo do ruba susjednog bloka, ne preko stanice.
             if(!seg.beforeBreak){
-                const d = dirFromTo(seg.points[0], seg.points[1]);
-                pts[0] = [pts[0][0] - d[0], pts[0][1] - d[1]];
+                if(!L.routeNoOverhang){
+                    const d = dirFromTo(seg.points[0], seg.points[1]);
+                    pts[0] = [pts[0][0] - d[0], pts[0][1] - d[1]];
+                }
             }else{
                 const d = dirFromTo(seg.beforeBreak, seg.points[0]);
                 pts[0] = [pts[0][0] - d[0]*0.5, pts[0][1] - d[1]*0.5];
@@ -1464,8 +1498,10 @@ function drawRouteLayer(L){
 
             const n = pts.length - 1;
             if(!seg.afterBreak){
-                const d = dirFromTo(seg.points[n-1], seg.points[n]);
-                pts[n] = [pts[n][0] + d[0], pts[n][1] + d[1]];
+                if(!L.routeNoOverhang){
+                    const d = dirFromTo(seg.points[n-1], seg.points[n]);
+                    pts[n] = [pts[n][0] + d[0], pts[n][1] + d[1]];
+                }
             }else{
                 const d = dirFromTo(seg.points[n], seg.afterBreak);
                 pts[n] = [pts[n][0] + d[0]*0.5, pts[n][1] + d[1]*0.5];
@@ -2487,6 +2523,33 @@ function sleep(ms){
     return new Promise(resolve=>setTimeout(resolve,ms));
 }
 
+
+/* v31: boje težine nivoa; ne prikazuje se tekst težine */
+const levelDifficultyMap = {
+    1:"easy", 2:"easy", 3:"easy",
+    4:"medium", 5:"easy", 6:"easy", 7:"easy", 8:"medium",
+    9:"medium", 10:"medium", 11:"easy", 12:"medium", 13:"medium",
+    14:"easy", 15:"easy", 16:"medium", 17:"medium", 18:"medium",
+    19:"hard", 20:"medium",
+    21:"easy", 22:"medium", 23:"medium", 24:"hard", 25:"hard",
+    26:"medium", 27:"medium", 28:"hard", 29:"hard", 30:"hard"
+};
+function difficultyForLevel(index){
+    return levelDifficultyMap[index + 1] || "easy";
+}
+function applyDifficultyUI(){
+    const diff = difficultyForLevel(currentLevel);
+    const cls = ["diff-easy","diff-medium","diff-hard"];
+    const select = document.getElementById("levelSelect");
+    const indicator = document.getElementById("levelIndicator");
+    const mission = document.querySelector(".mission-card");
+    [select, indicator, mission].forEach(el=>{
+        if(!el) return;
+        el.classList.remove(...cls);
+        el.classList.add("diff-" + diff);
+    });
+}
+
 function populateLevelSelector(){
     const select = document.getElementById("levelSelect");
     select.innerHTML = "";
@@ -2494,6 +2557,8 @@ function populateLevelSelector(){
         const opt = document.createElement("option");
         opt.value = i;
         opt.textContent = `Nivo ${i+1}`;
+        opt.className = "diff-" + difficultyForLevel(i);
+        opt.dataset.difficulty = difficultyForLevel(i);
         select.appendChild(opt);
     }
 }
