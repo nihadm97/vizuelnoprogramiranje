@@ -97,6 +97,21 @@ body{
     background:white;
 }
 
+#nextLevelBtn{
+    display:none;
+    background:linear-gradient(135deg,#22c55e,#16a34a);
+    color:white;
+    border:1px solid rgba(255,255,255,.14);
+    padding:9px 13px;
+    border-radius:999px;
+    font-weight:900;
+    font-size:14px;
+    box-shadow:0 10px 22px rgba(0,0,0,.25);
+}
+
+#nextLevelBtn.show{display:inline-block;}
+.blocklyText{font-weight:900 !important;}
+
 .main{
     height:calc(100vh - 66px);
     display:grid;
@@ -160,7 +175,7 @@ body{
     height:var(--board-size);
     border:7px solid #0f172a;
     border-radius:22px;
-    overflow:hidden;
+    overflow:visible;
     display:grid;
     grid-template-columns:repeat(10,1fr);
     grid-template-rows:repeat(10,1fr);
@@ -199,6 +214,61 @@ body{
 .board.mountain-backdrop .tile.station{
     background-clip:padding-box;
 }
+
+
+.tile.taxi-road{background:#111827;}
+.tile.shop{background:linear-gradient(135deg,#f59e0b,#d97706); box-shadow:inset 0 0 0 4px rgba(255,255,255,.22);}
+.tile.closed-shop{background:linear-gradient(135deg,#f59e0b,#d97706); box-shadow:inset 0 0 0 4px rgba(255,255,255,.22);}
+.tile.shop-check{animation:shopCheck .65s ease-in-out 2;}
+.tile.shop-open{box-shadow:inset 0 0 0 4px rgba(34,197,94,.9),0 0 18px rgba(34,197,94,.75);}
+.tile.shop-closed{box-shadow:inset 0 0 0 4px rgba(239,68,68,.95),0 0 18px rgba(239,68,68,.75);}
+@keyframes shopCheck{0%{transform:scale(1);}35%{transform:scale(1.1) rotate(-3deg);}70%{transform:scale(1.1) rotate(3deg);}100%{transform:scale(1);}}
+.tile.taxi-stand{background:linear-gradient(135deg,#facc15,#eab308); box-shadow:inset 0 0 0 4px rgba(15,23,42,.35);}
+.tile.destination{background:linear-gradient(135deg,#a78bfa,#6d28d9); box-shadow:inset 0 0 0 4px rgba(255,255,255,.24);}
+.tile.plow-attachment{background:linear-gradient(135deg,#a16207,#713f12); box-shadow:inset 0 0 0 4px rgba(255,255,255,.24);}
+.tile.mower-attachment{background:linear-gradient(135deg,#84cc16,#3f6212); box-shadow:inset 0 0 0 4px rgba(255,255,255,.24);}
+.tile.farm{background:linear-gradient(135deg,#92400e,#78350f);}
+.tile.farm.plowed{background:linear-gradient(135deg,#a16207,#713f12);}
+.tile.grain{background:linear-gradient(135deg,#fde68a,#d97706);}
+.tile.barn{background:linear-gradient(135deg,#dc2626,#7f1d1d); box-shadow:inset 0 0 0 4px rgba(255,255,255,.2);}
+.tile.plowed::after{
+    content:""; position:absolute; inset:12%; border-radius:10px;
+    background:repeating-linear-gradient(90deg,rgba(255,255,255,.22) 0 3px,transparent 3px 9px);
+}
+.entity.taxi{background:linear-gradient(135deg,#fde047,#f59e0b); transition:left .48s linear, top .48s linear, transform .48s linear;}
+.entity.taxi.rolling{filter:brightness(1.08); box-shadow:0 12px 26px rgba(0,0,0,.34),0 0 14px rgba(250,204,21,.55);}
+.entity.tractor{background:linear-gradient(135deg,#22c55e,#166534); transition:left .92s cubic-bezier(.3,.03,.4,1), top .92s cubic-bezier(.3,.03,.4,1), transform .92s cubic-bezier(.3,.03,.4,1);}
+.entity.tractor.rolling{animation:tractorChug .92s ease-in-out; filter:brightness(1.05);}
+.entity.tractor.flipped{animation:tractorFlip .9s ease-in-out forwards;}
+@keyframes tractorChug{
+    0%{filter:brightness(1);}
+    18%{transform:translateY(1px) scale(.99);}
+    38%{filter:brightness(1.08);}
+    62%{transform:translateY(-1px) scale(1.01);}
+    100%{filter:brightness(1);}
+}
+@keyframes tractorFlip{
+    0%{transform:rotate(0deg) scale(1);}
+    45%{transform:rotate(75deg) scale(1.05);}
+    100%{transform:rotate(105deg) scale(.96); filter:brightness(.75);}
+}
+.coord-label{
+    position:absolute; z-index:80; pointer-events:none;
+    color:white; background:rgba(15,23,42,.92); border:1px solid rgba(255,255,255,.28);
+    border-radius:999px; font-size:11px; font-weight:900; display:flex; align-items:center; justify-content:center;
+    width:24px; height:24px; box-shadow:0 5px 14px rgba(0,0,0,.32);
+}
+.coord-label.x{display:none;}
+.coord-label.y{left:-34px;}
+.coord-label.x.bottom{top:auto; bottom:-32px; display:flex;}
+.coord-label.y.right{display:none;}
+.coord-axis-title{
+    position:absolute; z-index:81; pointer-events:none; color:#111827; background:rgba(255,255,255,.95);
+    border-radius:999px; font-size:12px; font-weight:900; padding:5px 10px; box-shadow:0 6px 15px rgba(0,0,0,.25);
+}
+.coord-axis-title.x{left:50%; transform:translateX(-50%); bottom:-74px;}
+.coord-axis-title.y{left:-92px; top:50%; transform:translateY(-50%) rotate(-90deg);}
+.game-card.with-coords .controls{margin-top:92px;}
 
 .tile.grass{background:linear-gradient(135deg,#86d37c,#62b96a);}
 .tile.road{background:linear-gradient(135deg,#9ca3af,#6b7280);}
@@ -317,7 +387,7 @@ body{
 .tile.wall{background:linear-gradient(135deg,#475569,#1e293b);}
 .tile.goal{background:linear-gradient(135deg,#fde047,#f59e0b);box-shadow:inset 0 0 0 4px rgba(255,255,255,.28);}
 .tile.pathHint{box-shadow:inset 0 0 0 4px rgba(255,255,255,.34);}
-.tile.station,.tile.stationTarget,.tile.goal,.tile.pickup,.tile.dropoff,.tile.airport,.tile.runwayStart,.tile.airportTarget,.tile.wall,.tile.mountain{z-index:26;}
+.tile.station,.tile.stationTarget,.tile.goal,.tile.pickup,.tile.dropoff,.tile.airport,.tile.runwayStart,.tile.airportTarget,.tile.wall,.tile.mountain,.tile.shop,.tile.closed-shop,.tile.destination,.tile.taxi-stand,.tile.barn,.tile.plow-attachment,.tile.mower-attachment{z-index:26;}
 .tile.station{background:linear-gradient(135deg,#f97316,#ea580c);}
 .tile.stationTarget{background:linear-gradient(135deg,#86d37c,#62b96a);}
 .tile.water.stationTarget{background:linear-gradient(135deg,#38bdf8,#0369a1);}
@@ -359,6 +429,25 @@ body{
     stroke:rgba(255,255,255,.82);
     stroke-width:8;
     stroke-dasharray:12 10;
+}
+
+.route-layer .taxi-asphalt{
+    stroke:#111827;
+    stroke-width:16;
+    stroke-linecap:round;
+    stroke-linejoin:round;
+}
+
+.route-layer .taxi-edge{
+    stroke:transparent;
+    stroke-width:0;
+}
+
+.route-layer .taxi-center{
+    stroke:#facc15;
+    stroke-width:2.6;
+    stroke-dasharray:8 6;
+    stroke-linecap:butt;
 }
 
 .entity{
@@ -428,6 +517,11 @@ body{
     gap:8px;
     z-index:46;
     pointer-events:none;
+}
+
+
+.board-info.lower-fuel{
+    top:62px;
 }
 
 .board-pill{
@@ -611,6 +705,15 @@ button:hover{
     line-height:1.35;
 }
 
+.overlay-actions{
+    margin-top:20px;
+    display:none;
+    gap:12px;
+    flex-wrap:wrap;
+    justify-content:center;
+}
+.overlay-actions.show{display:flex;}
+
 .keyboard-help{
     position:absolute;
     left:14px;
@@ -658,6 +761,7 @@ button:hover{
         <!-- DEBUG LEVEL SELECTOR -->
         <!-- Ovaj izbor nivoa možeš kasnije obrisati ili sakriti. -->
         <select class="level-select" id="levelSelect" onchange="jumpToLevel()"></select>
+        <button id="nextLevelBtn" onclick="goToNextLevel()">Idi na sljedeći nivo</button>
     </div>
 </div>
 
@@ -678,6 +782,7 @@ button:hover{
                 <div class="board-pill" id="boardFuel">⛽ Gorivo: —</div>
                 <div class="board-pill" id="boardAlt">⬆ Visina: —</div>
                 <div class="board-pill" id="boardTime">⏰ Vrijeme: —</div>
+                <div class="board-pill" id="boardPkg">📦 Paketi: —</div>
             </div>
 
             <div class="hud" id="hud">
@@ -702,6 +807,10 @@ button:hover{
         <div class="overlay" id="overlay">
             <h2 id="overlayTitle">Bravo!</h2>
             <p id="overlayText">Nivo je završen.</p>
+            <div class="overlay-actions" id="successActions">
+                <button onclick="goToNextLevel()">Idi na sljedeći nivo</button>
+                <button onclick="stayOnCurrentLevel()" class="secondary">Ostani još malo</button>
+            </div>
         </div>
     </section>
 
@@ -909,7 +1018,100 @@ const levels = [
     toolbox:["move_forward","move_back","move_left","move_right","pickup","unload","wait","repeat","while_target"],
     pickups:[[2,7]], dropoffs:[[8,2]], capacity:1, totalPackages:1, onePackagePerPickup:true,
     startTime:690, earliestDeparture:710, travelTime:10, deliverTime:720, success:{type:"deliveredAndReturn", required:1}
+},
+{
+    name:"Taxi do koordinata",
+    icon:"🚕", vehicle:"taxi", mode:"taxi", theme:"grass",
+    mission:"Novi dio uvodi prave nazive funkcija: while ponavlja naredbe dok se ne dođe do zadate koordinate. Koristi blokove while x/y sa znakovima =, < ili > da taxi sa taxi stanice dođe do zvjezdice.",
+    start:[0,9], goal:[7,2], showCoords:true, goalIcon:"⭐",
+    toolbox:["move_up","move_down","move_left","move_right","while_x","while_y"],
+    roadPath:[[0,9],[1,9],[2,9],[3,9],[4,9],[4,8],[4,7],[5,7],[6,7],[7,7],[7,6],[7,5],[7,4],[7,3],[7,2]],
+    success:{type:"goal"}
+},
+{
+    name:"Taxi optimalna ruta",
+    icon:"🚕", vehicle:"taxi", mode:"taxi", theme:"grass",
+    mission:"Sada postoje dvije moguće putanje: jedna je kraća, a druga obilazna i troši previše goriva. Koristi while x/y sa znakovima <, > ili = i izaberi optimalnu rutu.",
+    start:[0,9], goal:[9,1], showCoords:true, goalIcon:"⭐",
+    toolbox:["move_up","move_down","move_left","move_right","while_x","while_y"], fuel:17,
+    roadPath:[[0,9],[1,9],[2,9],[3,9],[4,9],[5,9],[5,8],[5,7],[6,7],[7,7],[8,7],[9,7],[9,6],[9,5],[9,4],[9,3],[9,2],[9,1],[5,6],[5,5],[4,5],[4,4],[5,4],[6,4],[7,4],[8,4],[8,3],[8,2]],
+    roadRoutes:[[[0,9],[1,9],[2,9],[3,9],[4,9],[5,9],[5,8],[5,7],[6,7],[7,7],[8,7],[9,7],[9,6],[9,5],[9,4],[9,3],[9,2],[9,1]],[[5,7],[5,6],[5,5],[4,5],[4,4],[5,4],[6,4],[7,4],[8,4],[8,3],[8,2],[9,2]]],
+    success:{type:"goal"}
+},
+{
+    name:"Taxi i zatvorena radnja",
+    icon:"🚕", vehicle:"taxi", mode:"taxi", theme:"grass",
+    mission:"Prvo idi zajedničkim putem do račvanja. Na prvoj, udaljenoj radnji provjeri if radnja zatvorena. Ako jeste, vrati se na račvanje i idi do druge, otvorene radnje koja je na drugoj strani mape.",
+    start:[0,9], goal:[8,2], showCoords:true,
+    toolbox:["move_up","move_down","move_left","move_right","while_x","while_y","if_shop_closed"],
+    roadPath:[[0,9],[1,9],[2,9],[3,9],[4,9],[4,8],[4,7],[4,6],[4,5],[4,4],[3,4],[2,4],[1,4],[1,3],[1,2],[5,4],[6,4],[7,4],[8,4],[8,3],[8,2]],
+    roadRoutes:[[[0,9],[1,9],[2,9],[3,9],[4,9],[4,8],[4,7],[4,6],[4,5],[4,4]],[[4,4],[3,4],[2,4],[1,4],[1,3],[1,2]],[[4,4],[5,4],[6,4],[7,4],[8,4],[8,3],[8,2]]],
+    shops:[[1,2],[8,2]], closedShops:[[1,2]], randomShopState:true, success:{type:"openShop"}
+},
+{
+    name:"Taxi radnja i gorivo",
+    icon:"🚕", vehicle:"taxi", mode:"taxi", theme:"grass",
+    mission:"Sada vrijedi isto pravilo, ali uz ograničeno gorivo. Idi do prve radnje, provjeri if radnja zatvorena, pa se preko zajedničkog puta preusmjeri na drugu radnju bez suvišnih koraka.",
+    start:[0,9], goal:[9,1], showCoords:true, fuel:44,
+    toolbox:["move_up","move_down","move_left","move_right","while_x","while_y","if_shop_closed"],
+    roadPath:[[0,9],[1,9],[2,9],[3,9],[4,9],[5,9],[5,8],[5,7],[5,6],[5,5],[4,5],[3,5],[2,5],[2,4],[2,3],[2,2],[2,1],[6,5],[7,5],[8,5],[9,5],[9,4],[9,3],[9,2],[9,1]],
+    roadRoutes:[[[0,9],[1,9],[2,9],[3,9],[4,9],[5,9],[5,8],[5,7],[5,6],[5,5]],[[5,5],[4,5],[3,5],[2,5],[2,4],[2,3],[2,2],[2,1]],[[5,5],[6,5],[7,5],[8,5],[9,5],[9,4],[9,3],[9,2],[9,1]]],
+    shops:[[2,1],[9,1]], closedShops:[[2,1]], success:{type:"openShop"}
+},
+{
+    name:"Taxi sakuplja pakete",
+    icon:"🚕", vehicle:"taxi", mode:"taxi", theme:"grass",
+    mission:"Tri destinacije su odvojene i nalaze se na posebnim granama puta. Na svakoj destinaciji preuzmi nasumično 3 do 5 paketa. Program se testira više puta jer broj paketa nije uvijek isti.",
+    start:[1,9], goal:[1,9], showCoords:true,
+    toolbox:["move_up","move_down","move_left","move_right","pickup","repeat","while_x","while_y","if_packages"],
+    roadPath:[[1,9],[2,9],[3,9],[4,9],[5,9],[5,8],[5,7],[5,6],[5,5],[5,4],[4,4],[3,4],[2,4],[1,4],[1,3],[1,2],[6,4],[7,4],[8,4],[8,3],[8,2],[5,5],[5,6],[5,7],[6,7],[7,7],[8,7]],
+    roadRoutes:[[[1,9],[2,9],[3,9],[4,9],[5,9],[5,8],[5,7],[5,6],[5,5],[5,4]],[[5,4],[4,4],[3,4],[2,4],[1,4],[1,3],[1,2]],[[5,4],[6,4],[7,4],[8,4],[8,3],[8,2]],[[5,5],[5,6],[5,7],[6,7],[7,7],[8,7]]],
+    pickups:[[1,2],[8,2],[8,7]], destinations:[[1,2],[8,2],[8,7]], randomPickup:true, capacity:20, totalPackages:15,
+    success:{type:"collectAndReturn", required:12, requiredRuns:3}
+},
+{
+    name:"Traktor ore njivu",
+    icon:"🚜", vehicle:"tractor", mode:"tractor", theme:"grass",
+    mission:"Traktor kreće iz štale. Koristi while x/y sa znakovima <, > ili = za dolazak do redova i kolona, a for za ponavljanje istih poteza. Uzori cijelu smeđu njivu, ali ne pravi U-okret jer se traktor prevrne.",
+    start:[0,9], goal:[0,9], showCoords:true, toolbox:["move_up","move_down","move_left","move_right","repeat","while_x","while_y"],
+    farm:[[2,2],[3,2],[4,2],[5,2],[6,2],[7,2],[2,3],[3,3],[4,3],[5,3],[6,3],[7,3],[2,4],[3,4],[4,4],[5,4],[6,4],[7,4],[2,5],[3,5],[4,5],[5,5],[6,5],[7,5],[2,6],[3,6],[4,6],[5,6],[6,6],[7,6],[2,7],[3,7],[4,7],[5,7],[6,7],[7,7]],
+    success:{type:"plowedAll"}
+},
+{
+    name:"Dvije njive",
+    icon:"🚜", vehicle:"tractor", mode:"tractor", theme:"grass",
+    mission:"Uzori prvu manju njivu, zatim pređi na drugu i uzori i nju. Koristi koordinatne while x/y blokove sa znakovima <, > ili = da se precizno krećeš po tabli.",
+    start:[0,9], goal:[0,9], showCoords:true, toolbox:["move_up","move_down","move_left","move_right","repeat","while_x","while_y"],
+    farm:[[1,2],[2,2],[3,2],[1,3],[2,3],[3,3],[1,4],[2,4],[3,4],[6,5],[7,5],[8,5],[6,6],[7,6],[8,6],[6,7],[7,7],[8,7]],
+    success:{type:"plowedAll"}
+},
+{
+    name:"Dvije njive i gorivo",
+    icon:"🚜", vehicle:"tractor", mode:"tractor", theme:"grass",
+    mission:"Uzori obje njive uz ograničeno gorivo. Imaš malo prostora za grešku, ali putanja i dalje mora biti uredna.",
+    start:[0,9], goal:[0,9], showCoords:true, fuel:62, toolbox:["move_up","move_down","move_left","move_right","repeat","while_x","while_y"],
+    farm:[[0,0],[1,0],[2,0],[3,0],[0,1],[1,1],[2,1],[3,1],[0,2],[1,2],[2,2],[3,2],[0,3],[1,3],[2,3],[3,3],[6,6],[7,6],[8,6],[9,6],[6,7],[7,7],[8,7],[9,7],[6,8],[7,8],[8,8],[9,8],[6,9],[7,9],[8,9],[9,9]],
+    success:{type:"plowedAll"}
+},
+{
+    name:"Plug i kosačica",
+    icon:"🚜", vehicle:"tractor", mode:"tractor", theme:"grass",
+    mission:"Prvo idi do male kocke za plug i priključi ga. Zatim uzori smeđu njivu, vrati se u štalu, pa idi do male kocke za kosačicu, priključi je i pokosi njivu sa žitaricama.",
+    start:[0,9], goal:[0,9], showCoords:true, toolbox:["move_up","move_down","move_left","move_right","plug","mower","if_tractor_tool","repeat","while_x","while_y"],
+    farm:[[1,2],[2,2],[3,2],[1,3],[2,3],[3,3],[1,4],[2,4],[3,4]],
+    grain:[[6,4],[7,4],[8,4],[6,5],[7,5],[8,5],[6,6],[7,6],[8,6]],
+    plowTool:[[0,7]], mowerTool:[[1,8]], requireBarnBetween:true, success:{type:"plowHarvestReturn"}
+},
+{
+    name:"Finalni traktor i gorivo",
+    icon:"🚜", vehicle:"tractor", mode:"tractor", theme:"grass",
+    mission:"Završni izazov: priključi plug na koordinati x=10, y=1 i kosačicu na x=10, y=2. Redoslijed nije bitan: možeš prvo kositi pa orati ili prvo orati pa kositi. Gorivo prati pažljivo i obradi sva polja.",
+    start:[0,9], goal:[0,9], showCoords:true, fuel:80, toolbox:["move_up","move_down","move_left","move_right","plug","mower","if_tractor_tool","repeat","while_x","while_y"],
+    farm:[[0,0],[1,0],[2,0],[3,0],[0,1],[1,1],[2,1],[3,1],[0,2],[1,2],[2,2],[3,2],[0,3],[1,3],[2,3],[3,3]],
+    grain:[[6,3],[7,3],[8,3],[9,3],[6,4],[7,4],[8,4],[9,4],[6,5],[7,5],[8,5],[9,5],[6,6],[7,6],[8,6],[9,6]],
+    plowTool:[[9,9]], mowerTool:[[9,8]], requireBarnBetween:true, success:{type:"plowHarvestReturn"}
 }
+
 ];
 
 let currentLevel = 0;
@@ -921,14 +1123,26 @@ let packagesLeftAtHub = 0;
 let gameTime = null;
 let reachedGoalBeforeReturn = false;
 let completedPickupSpots = [];
+let plowedCells = [];
+let harvestedCells = [];
+let visitedBarnAfterPlow = false;
+let moveHistory = [];
+let checkedClosedShop = false;
+let closedShopsState = [];
+let taxiRandomTotal = 0;
+let currentTool = null;
+let tractorToolWorkEnabled = false;
 let running = false;
 let failed = false;
 let statusFloatTimer = null;
 let completing = false;
+let levelSolved = false;
+let level25SuccessStreak = 0;
 
 function level(){ return levels[currentLevel]; }
 function same(a,b){ return a && b && a[0]===b[0] && a[1]===b[1]; }
 function hasCoord(list,cx,cy){ return (list||[]).some(p=>p[0]===cx && p[1]===cy); }
+function effectiveClosedShops(L=level()){ return (closedShopsState && closedShopsState.length) ? closedShopsState : (L.closedShops || []); }
 function mountainAt(cx,cy){ return (level().mountains||[]).find(m=>m.x===cx && m.y===cy); }
 function tileSize(){ return board.clientWidth / GRID; }
 
@@ -936,6 +1150,8 @@ function renderLevel(){
     const L = level();
     board.innerHTML = "";
     board.classList.toggle("mountain-backdrop", !!L.fullMountainBackdrop);
+    const gameCard = document.querySelector(".game-card");
+    if(gameCard) gameCard.classList.toggle("with-coords", !!L.showCoords);
 
     for(let row=0; row<GRID; row++){
         for(let col=0; col<GRID; col++){
@@ -949,6 +1165,7 @@ function renderLevel(){
     drawRouteLayer(L);
 
     drawMountainBackdrop(L);
+    drawCoordinates(L);
 
     entity = document.createElement("div");
     entity.className = "entity " + L.vehicle;
@@ -977,6 +1194,8 @@ function renderLevel(){
         helpBox.style.display = "none";
     }
     document.getElementById("runBtn").style.display = (L.mode === "keyboard" || L.mode === "keyProgram") ? "none" : "inline-block";
+    const nextBtn = document.getElementById("nextLevelBtn");
+    if(nextBtn) nextBtn.classList.remove("show");
 
     resetState(false);
     updateHudVisibility();
@@ -996,12 +1215,23 @@ function tileClass(col,row,L){
     const airportHere = hasCoord(L.airports,col,row);
     const pickupHere = hasCoord(L.pickups,col,row);
     const dropoffHere = hasCoord(L.dropoffs,col,row);
+    const destinationHere = hasCoord(L.destinations,col,row);
     const wallHere = hasCoord(L.walls,col,row);
+    const roadHere = hasCoord(L.roadPath,col,row);
+    const shopHere = hasCoord(L.shops,col,row);
+    const farmHere = hasCoord(L.farm,col,row);
+    const grainHere = hasCoord(L.grain,col,row);
+    const plowToolHere = hasCoord(L.plowTool,col,row);
+    const mowerToolHere = hasCoord(L.mowerTool,col,row);
+    const barnHere = same(L.start,[col,row]) && L.vehicle === "tractor";
     const startBaseHere = hasCoord(L.bases,col,row) || (same(L.start,[col,row]) && L.showStartBase);
     const isGoal = same(L.goal,[col,row]);
 
     if(onPath) cls = "grass";
     if(onWaterPath) cls = "water";
+    if(roadHere) cls = "taxi-road";
+    if(farmHere) cls = plowedCells.includes(`${col},${row}`) ? "farm plowed" : "farm";
+    if(grainHere) cls = harvestedCells.includes(`${col},${row}`) ? "grass" : "grain";
 
     if(stationHere){
         cls = L.stationIcon === "target"
@@ -1013,16 +1243,21 @@ function tileClass(col,row,L){
         if(L.airportStyle === "runway") cls = same(L.start,[col,row]) ? "runwayStart" : (L.yellowGoal && isGoal ? "goal" : "airportTarget");
         else cls = "airport";
     }
-    if(pickupHere) cls = "pickup";
+    if(pickupHere) cls = destinationHere ? "destination" : "pickup";
     if(dropoffHere){
         if(L.blueTargetBg) cls = "blueTargetTile";
         else cls = L.transparentTargets ? (cls + " transparent-marker") : "dropoff";
         cls += " front-marker";
     }
+    if(shopHere) cls = "shop";
+    if(plowToolHere) cls = "plow-attachment";
+    if(mowerToolHere) cls = "mower-attachment";
+    if(barnHere) cls = "barn";
     if(wallHere) cls = "wall";
-    if(startBaseHere) cls += " start-base";
+    if(startBaseHere && L.vehicle !== "tractor") cls += " start-base";
+    if(same(L.start,[col,row]) && L.vehicle === "taxi") cls = "taxi-stand";
     if(mountainAt(col,row) && !L.fullMountainBackdrop) cls = "mountain";
-    if(isGoal && !stationHere && !airportHere && !dropoffHere) cls += " goal";
+    if(isGoal && !stationHere && !airportHere && !dropoffHere && !shopHere) cls += " goal";
     return cls;
 }
 
@@ -1030,6 +1265,13 @@ function tileIcon(col,row,L){
     const m = mountainAt(col,row);
     if(m && !L.fullMountainBackdrop) return `<div class="mountain-scene"><span class="peak peak-back"></span><span class="peak peak-front-left"></span><span class="peak peak-front-right"></span></div><span class="mountain-height">${m.h}</span>`;
     const isGoal = same(L.goal,[col,row]);
+    if(same(L.start,[col,row]) && L.vehicle === "taxi") return "🚏";
+    if(same(L.start,[col,row]) && L.vehicle === "tractor") return "🏠";
+    if(hasCoord(L.shops,col,row)) return "🏪";
+    if(hasCoord(L.plowTool,col,row)) return "🔩";
+    if(hasCoord(L.mowerTool,col,row)) return "⚙️";
+    if(hasCoord(L.farm,col,row)) return plowedCells.includes(`${col},${row}`) ? "" : "🌱";
+    if(hasCoord(L.grain,col,row)) return harvestedCells.includes(`${col},${row}`) ? "" : "🌾";
     if(hasCoord(L.stations,col,row)) return (L.showGoalStar && isGoal) ? `<span class="target-icon">⭐</span>` : (L.stationIcon === "target" ? `<span class="target-icon">🎯</span>` : "🚉");
     if(hasCoord(L.pickups,col,row)) return "📦";
     if(hasCoord(L.dropoffs,col,row)){
@@ -1042,6 +1284,32 @@ function tileIcon(col,row,L){
     if(isGoal) return L.goalIcon || "⭐";
     if(hasCoord(L.walls,col,row)) return "🧱";
     return "";
+}
+
+function drawCoordinates(L){
+    if(!L.showCoords) return;
+    const s = tileSize();
+    for(let i=0;i<GRID;i++){
+        const xb = document.createElement("div");
+        xb.className = "coord-label x bottom";
+        xb.textContent = i+1;
+        xb.style.left = (i*s + s/2 - 12) + "px";
+        board.appendChild(xb);
+
+        const yl = document.createElement("div");
+        yl.className = "coord-label y";
+        yl.textContent = GRID - i;
+        yl.style.top = (i*s + s/2 - 12) + "px";
+        board.appendChild(yl);
+    }
+    const xt = document.createElement("div");
+    xt.className = "coord-axis-title x";
+    xt.textContent = "x osa";
+    board.appendChild(xt);
+    const yt = document.createElement("div");
+    yt.className = "coord-axis-title y";
+    yt.textContent = "y osa";
+    board.appendChild(yt);
 }
 
 function drawMountainBackdrop(L){
@@ -1091,7 +1359,27 @@ function drawMountainBackdrop(L){
 }
 
 function drawRouteLayer(L){
-    const route = L.path || L.waterPath;
+    if(L.roadRoutes && L.roadRoutes.length){
+        const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+        svg.setAttribute("class", "route-layer");
+        svg.setAttribute("viewBox", `0 0 ${GRID} ${GRID}`);
+        svg.setAttribute("preserveAspectRatio", "none");
+        function addLine(cls, points){
+            if(points.length < 2) return;
+            const line = document.createElementNS("http://www.w3.org/2000/svg", "polyline");
+            line.setAttribute("points", points.map(p => `${p[0]+0.5},${p[1]+0.5}`).join(" "));
+            line.setAttribute("class", cls);
+            line.setAttribute("vector-effect", "non-scaling-stroke");
+            svg.appendChild(line);
+        }
+        for(const r of L.roadRoutes){
+            addLine("taxi-asphalt", r);
+            addLine("taxi-center", r);
+        }
+        board.appendChild(svg);
+        return;
+    }
+    const route = L.path || L.waterPath || L.roadPath;
     if(!route || route.length < 2) return;
 
     const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
@@ -1105,6 +1393,11 @@ function drawRouteLayer(L){
     }
     if(L.eraseRouteOnTargets){
         for(const p of (L.dropoffs || [])) breakPoints.add(`${p[0]},${p[1]}`);
+    }
+    if(L.mode === "taxi"){
+        if(L.goal) breakPoints.add(`${L.goal[0]},${L.goal[1]}`);
+        for(const p of (L.shops || [])) breakPoints.add(`${p[0]},${p[1]}`);
+        for(const p of (L.pickups || [])) breakPoints.add(`${p[0]},${p[1]}`);
     }
 
     function center(p){ return [p[0] + 0.5, p[1] + 0.5]; }
@@ -1196,8 +1489,12 @@ function drawRouteLayer(L){
         if(L.path){
             addLine("rail-line", pts);
             addLine("rail-highlight", pts);
-        }else{
+        }else if(L.waterPath){
             addLine("water-line", pts);
+        }else if(L.roadPath){
+            addLine("taxi-edge", pts);
+            addLine("taxi-asphalt", pts);
+            addLine("taxi-center", pts);
         }
     }
 
@@ -1226,12 +1523,50 @@ function resetState(hide=true){
     gameTime = typeof L.startTime === "number" ? L.startTime : null;
     reachedGoalBeforeReturn = false;
     completedPickupSpots = [];
-    if(entity) entity.classList.remove("glow");
+    plowedCells = [];
+    harvestedCells = [];
+    visitedBarnAfterPlow = false;
+    moveHistory = [];
+    checkedClosedShop = false;
+    levelSolved = false;
+    const nextBtn = document.getElementById("nextLevelBtn");
+    if(nextBtn) nextBtn.classList.remove("show");
+    if(L.randomShopState && (L.shops || []).length >= 2){
+        const chosen = Math.floor(Math.random() * L.shops.length);
+        closedShopsState = [L.shops[chosen]];
+    }else{
+        closedShopsState = [...(L.closedShops || [])];
+    }
+    taxiRandomTotal = 0;
+    currentTool = null;
+    tractorToolWorkEnabled = false;
+    if(entity){
+        entity.classList.remove("glow","rolling","flying","flipped");
+        entity.style.transition = "none";
+        updateEntity();
+        void entity.offsetWidth;
+        entity.style.transition = "";
+    }
+    refreshBoardTiles();
     if(hide) hideOverlay();
     hideStatusFloat();
     updateEntity();
     updateHud();
     updatePackageIndicator();
+}
+
+function refreshBoardTiles(){
+    const L = level();
+    for(let row=0; row<GRID; row++){
+        for(let col=0; col<GRID; col++){
+            const idx = row * GRID + col;
+            const tile = board.children[idx];
+            if(tile && tile.classList && tile.classList.contains("tile")){
+                tile.className = "tile " + tileClass(col,row,L);
+                tile.innerHTML = tileIcon(col,row,L);
+            }
+        }
+    }
 }
 
 function updateEntity(){
@@ -1253,9 +1588,13 @@ function updateHudVisibility(){
     const fuelPill = document.getElementById("boardFuel");
     const altPill = document.getElementById("boardAlt");
     const timePill = document.getElementById("boardTime");
+    const pkgPill = document.getElementById("boardPkg");
+    const boardInfo = document.getElementById("boardInfo");
+    if(boardInfo) boardInfo.classList.toggle("lower-fuel", currentLevel === 27 || currentLevel === 29);
     if(fuelPill) fuelPill.classList.toggle("show", typeof L.fuel === "number");
     if(altPill) altPill.classList.toggle("show", L.mode === "aircraft");
     if(timePill) timePill.classList.toggle("show", typeof L.startTime === "number");
+    if(pkgPill) pkgPill.classList.toggle("show", !!(L.pickups || L.success?.type === "collectAndReturn"));
 }
 
 function setBox(id, show){
@@ -1283,6 +1622,7 @@ function updateHud(){
 function packageText(){
     const L = level();
     const required = L.success?.required || L.totalPackages || 1;
+    if(L.success?.type === "collectAndReturn") return `${carrying}/${required}`;
     return `${carrying}/${L.capacity||1} | ${delivered}/${required}`;
 }
 
@@ -1317,6 +1657,7 @@ function updateTopInfo(){
     const fuelPill = document.getElementById("boardFuel");
     const altPill = document.getElementById("boardAlt");
     const timePill = document.getElementById("boardTime");
+    const pkgPill = document.getElementById("boardPkg");
     if(fuelPill){
         const showFuel = fuel !== null;
         fuelPill.classList.toggle("show", showFuel);
@@ -1333,6 +1674,11 @@ function updateTopInfo(){
         timePill.classList.toggle("show", showTime);
         timePill.textContent = `⏰ Vrijeme: ${showTime ? formatTime(gameTime) : "—"}`;
     }
+    if(pkgPill){
+        const showPkg = !!(level().pickups || level().success?.type === "collectAndReturn" || carrying > 0 || delivered > 0);
+        pkgPill.classList.toggle("show", showPkg);
+        pkgPill.textContent = `📦 Paketi: ${showPkg ? packageText() : "—"}`;
+    }
 }
 
 function modeName(mode){
@@ -1343,7 +1689,9 @@ function modeName(mode){
         ship:"Brod",
         keyboard:"Svemirski brod",
         keyProgram:"Svemirski brod",
-        droneBlocks:"Svemirski brod"
+        droneBlocks:"Svemirski brod",
+        taxi:"Taxi",
+        tractor:"Traktor"
     }[mode] || mode;
 }
 
@@ -1370,11 +1718,21 @@ Blockly.defineBlocksWithJsonArray([
 {type:"pickup",message0:"📦 preuzmi paket",previousStatement:null,nextStatement:null,colour:260},
 {type:"unload",message0:"📭 istovari paket",previousStatement:null,nextStatement:null,colour:330},
 {type:"wait",message0:"⏱ čekaj 10 min",previousStatement:null,nextStatement:null,colour:45},
-{type:"repeat_times",message0:"ponovi %1 puta %2 uradi %3",args0:[{type:"field_number",name:"TIMES",value:3,min:1,max:20},{type:"input_dummy"},{type:"input_statement",name:"DO"}],previousStatement:null,nextStatement:null,colour:120},
-{type:"while_goal",message0:"dok nisi na cilju %1 uradi %2",args0:[{type:"input_dummy"},{type:"input_statement",name:"DO"}],previousStatement:null,nextStatement:null,colour:160},
-{type:"while_target",message0:"sve dok nisi na %1 %2 uradi %3",args0:[{type:"field_dropdown",name:"TARGET",options:[["🎯 stanici","DROPOFF"],["🏠 kući","HOME"]]},{type:"input_dummy"},{type:"input_statement",name:"DO"}],previousStatement:null,nextStatement:null,colour:160},
-{type:"if_key_pressed",message0:"tipka %1 %2 uradi %3",args0:[{type:"field_dropdown",name:"KEY",options:[["↑ / W","UP"],["↓ / S","DOWN"],["← / A","LEFT"],["→ / D","RIGHT"]]},{type:"input_dummy"},{type:"input_statement",name:"DO"}],colour:200}
+{type:"repeat_times",message0:"FOR %1 puta %2 %3",args0:[{type:"field_number",name:"TIMES",value:3,min:1,max:40},{type:"input_dummy"},{type:"input_statement",name:"DO"}],previousStatement:null,nextStatement:null,colour:120},
+{type:"while_goal",message0:"WHILE nisi na cilju %1 %2",args0:[{type:"input_dummy"},{type:"input_statement",name:"DO"}],previousStatement:null,nextStatement:null,colour:160},
+{type:"while_target",message0:"WHILE nisam na %1 %2",args0:[{type:"field_dropdown",name:"TARGET",options:[["🎯 stanici","DROPOFF"],["🏠 kući / taxi stanici / štali","HOME"]]},{type:"input_statement",name:"DO"}],previousStatement:null,nextStatement:null,colour:160},
+{type:"while_x",message0:"WHILE x %1 %2 %3",args0:[{type:"field_dropdown",name:"OP",options:[["=","EQ"],["<","LT"],[">","GT"]]},{type:"field_number",name:"TX",value:1,min:1,max:10},{type:"input_statement",name:"DO"}],previousStatement:null,nextStatement:null,colour:160},
+{type:"while_y",message0:"WHILE y %1 %2 %3",args0:[{type:"field_dropdown",name:"OP",options:[["=","EQ"],["<","LT"],[">","GT"]]},{type:"field_number",name:"TY",value:1,min:1,max:10},{type:"input_statement",name:"DO"}],previousStatement:null,nextStatement:null,colour:160},
+{type:"if_shop_closed",message0:"IF radnja %1 %2 %3 ELSE %4",args0:[{type:"field_dropdown",name:"STATE",options:[["zatvorena","CLOSED"],["otvorena","OPEN"]]},{type:"input_dummy"},{type:"input_statement",name:"DO"},{type:"input_statement",name:"ELSE"}],previousStatement:null,nextStatement:null,colour:20},
+{type:"if_packages",message0:"IF imam kutija %1 %2 %3 ELSE %4",args0:[{type:"field_dropdown",name:"STATE",options:[["dovoljno","ENOUGH"],["nedovoljno","NOT_ENOUGH"]]},{type:"input_dummy"},{type:"input_statement",name:"DO"},{type:"input_statement",name:"ELSE"}],previousStatement:null,nextStatement:null,colour:20},
+{type:"plug",message0:"🔩 priključi plug",previousStatement:null,nextStatement:null,colour:95},
+{type:"mower",message0:"⚙️ priključi kosačicu",previousStatement:null,nextStatement:null,colour:75},
+{type:"plow",message0:"🚜 uzori polje",previousStatement:null,nextStatement:null,colour:95},
+{type:"harvest",message0:"🌾 pokosi žitarice",previousStatement:null,nextStatement:null,colour:55},
+{type:"if_tractor_tool",message0:"IF traktor ima %1 %2",args0:[{type:"field_dropdown",name:"TOOL",options:[["plug","PLOW"],["kosačicu","MOWER"]]},{type:"input_statement",name:"DO"}],previousStatement:null,nextStatement:null,colour:20},
+{type:"if_key_pressed",message0:"IF tipka %1 %2 uradi %3",args0:[{type:"field_dropdown",name:"KEY",options:[["↑ / W","UP"],["↓ / S","DOWN"],["← / A","LEFT"],["→ / D","RIGHT"]]},{type:"input_dummy"},{type:"input_statement",name:"DO"}],colour:200}
 ]);
+
 
 const workspace = Blockly.inject("blocklyDiv",{
     toolbox:document.getElementById("toolbox"),
@@ -1413,7 +1771,16 @@ function updateToolbox(){
         repeat:'<block type="repeat_times"></block>',
         while_goal:'<block type="while_goal"></block>',
         while_target:'<block type="while_target"></block>',
-        if_key_pressed:'<block type="if_key_pressed"></block>'
+        if_key_pressed:'<block type="if_key_pressed"></block>',
+        while_x:'<block type="while_x"></block>',
+        while_y:'<block type="while_y"></block>',
+        if_shop_closed:'<block type="if_shop_closed"></block>',
+        if_packages:'<block type="if_packages"></block>',
+        if_tractor_tool:'<block type="if_tractor_tool"></block>',
+        plow:'<block type="plow"></block>',
+        plug:'<block type="plug"></block>',
+        mower:'<block type="mower"></block>',
+        harvest:'<block type="harvest"></block>'
     };
     workspace.updateToolbox("<xml>" + names.map(n=>map[n]||"").join("") + "</xml>");
 }
@@ -1452,6 +1819,36 @@ function atSelectedTarget(target){
     return same([x,y],L.goal);
 }
 
+function coordYToIndex(coordY){
+    return GRID - coordY;
+}
+
+function atXY(tx,ty){
+    return x === tx-1 && y === coordYToIndex(ty);
+}
+
+function currentCoordX(){ return x + 1; }
+function currentCoordY(){ return GRID - y; }
+function whileCondition(value, op, target){
+    if(op === "LT") return value < target;
+    if(op === "GT") return value > target;
+    return value === target;
+}
+
+function packageCompare(value, op, target){
+    if(op === "LT") return value < target;
+    if(op === "GT") return value > target;
+    return value === target;
+}
+
+
+function fieldFinished(){
+    const L = level();
+    const farmDone = (L.farm || []).every(p=>plowedCells.includes(`${p[0]},${p[1]}`));
+    const grainDone = (L.grain || []).every(p=>harvestedCells.includes(`${p[0]},${p[1]}`));
+    return farmDone && grainDone;
+}
+
 function commandsForKey(keyName){
     const top = workspace.getTopBlocks(true);
     const list = [];
@@ -1487,7 +1884,11 @@ function commandFromBlock(block){
         land:"land",
         pickup:"pickup",
         unload:"unload",
-        wait:"wait"
+        wait:"wait",
+        plow:"plow",
+        harvest:"harvest",
+        plug:"plug",
+        mower:"mower"
     };
     if(simple[type]) return [{type:simple[type]}];
     if(type === "repeat_times"){
@@ -1499,14 +1900,35 @@ function commandFromBlock(block){
     if(type === "while_target"){
         return [{type:"whileTarget", target:block.getFieldValue("TARGET"), body:statementCommands(block,"DO")}];
     }
+    if(type === "while_x"){
+        return [{type:"whileX", op:block.getFieldValue("OP"), tx:Number(block.getFieldValue("TX"))||1, body:statementCommands(block,"DO")}];
+    }
+    if(type === "while_y"){
+        return [{type:"whileY", op:block.getFieldValue("OP"), ty:Number(block.getFieldValue("TY"))||1, body:statementCommands(block,"DO")}];
+    }
+    if(type === "if_shop_closed"){
+        return [{type:"ifShopClosed", state:block.getFieldValue("STATE"), body:statementCommands(block,"DO"), elseBody:statementCommands(block,"ELSE")}];
+    }
+    if(type === "if_packages"){
+        return [{type:"ifPackages", state:block.getFieldValue("STATE"), body:statementCommands(block,"DO"), elseBody:statementCommands(block,"ELSE")}];
+    }
+    if(type === "if_tractor_tool"){
+        return [{type:"ifTractorTool", tool:block.getFieldValue("TOOL"), body:statementCommands(block,"DO")}];
+    }
     if(type === "if_key_pressed") return [];
     return [];
 }
 
+function workspaceHasBlock(type){
+    return workspace.getAllBlocks(false).some(block => block.type === type);
+}
+
 async function runCode(){
     if(running || level().mode === "keyboard") return;
+    running = true;
     resetState(true);
     running = true;
+    await sleep(140);
     const commands = commandsFromWorkspace();
     await executeList(commands,0);
     if(!failed && !completing) checkSuccess(true);
@@ -1515,8 +1937,24 @@ async function runCode(){
 
 function delayAfterAction(action){
     if(level().mode === "train" || level().mode === "ship") return 760;
+    if(level().mode === "taxi" && ["forward","back","left","right","up","down"].includes(action.type)) return 500;
+    if(level().mode === "tractor" && ["forward","back","left","right","up","down"].includes(action.type)) return 940;
     if(action.type === "altUp" || action.type === "altDown") return 950;
     return 230;
+}
+
+function animateShopCheck(isClosed){
+    const idx = y * GRID + x;
+    const tile = board.children[idx];
+    if(tile && tile.classList && tile.classList.contains("tile")){
+        tile.classList.remove("shop-open","shop-closed","shop-check");
+        void tile.offsetWidth;
+        tile.classList.add("shop-check", isClosed ? "shop-closed" : "shop-open");
+        setTimeout(()=>{
+            if(tile) tile.classList.remove("shop-check","shop-open","shop-closed");
+        }, 1400);
+    }
+    showStatusFloat(isClosed ? "Radnja je zatvorena 🔒" : "Radnja je otvorena ✓");
 }
 
 async function executeList(list, depth){
@@ -1542,6 +1980,42 @@ async function executeList(list, depth){
                 guard++;
             }
             if(guard >= 60) fail("Petlja se ponovila previše puta.");
+        }else if(action.type === "whileX"){
+            let guard = 0;
+            while(whileCondition(currentCoordX(), action.op, action.tx) && !failed && guard < 80){
+                await executeList(action.body, depth+1);
+                guard++;
+            }
+            if(guard >= 80) fail("while x= se ponovio previše puta.");
+        }else if(action.type === "whileY"){
+            let guard = 0;
+            while(whileCondition(currentCoordY(), action.op, action.ty) && !failed && guard < 80){
+                await executeList(action.body, depth+1);
+                guard++;
+            }
+            if(guard >= 80) fail("while y= se ponovio previše puta.");
+        }else if(action.type === "ifShopClosed"){
+            const L = level();
+            if(!hasCoord(L.shops,x,y)) return fail("Uslov za radnju možeš provjeriti samo kada je taxi na bloku radnje.");
+            checkedClosedShop = true;
+            const isClosed = hasCoord(effectiveClosedShops(L),x,y);
+            animateShopCheck(isClosed);
+            await sleep(850);
+            const conditionOk = action.state === "OPEN" ? !isClosed : isClosed;
+            if(conditionOk) await executeList(action.body, depth+1);
+            else await executeList(action.elseBody, depth+1);
+        }else if(action.type === "ifPackages"){
+            const hasEnoughPackages = carrying >= 12;
+            const conditionOk = action.state === "ENOUGH" ? hasEnoughPackages : !hasEnoughPackages;
+            if(conditionOk) await executeList(action.body, depth+1);
+            else await executeList(action.elseBody, depth+1);
+        }else if(action.type === "ifTractorTool"){
+            if((action.tool === "PLOW" && currentTool === "plow") || (action.tool === "MOWER" && currentTool === "mower")){
+                const previousToolWork = tractorToolWorkEnabled;
+                tractorToolWorkEnabled = true;
+                await executeList(action.body, depth+1);
+                tractorToolWorkEnabled = previousToolWork;
+            }
         }else{
             await executeAction(action);
         }
@@ -1571,6 +2045,10 @@ async function executeAction(action){
     if(action.type === "unload") { unload(); return; }
     if(action.type === "wait") { gameTime = (gameTime ?? 0) + 10; updateHud(); pulse("⏱"); return; }
     if(action.type === "land") { land(); return; }
+    if(action.type === "plow") { plow(); return; }
+    if(action.type === "harvest") { harvest(); return; }
+    if(action.type === "plug") { usePlug(); return; }
+    if(action.type === "mower") { useMower(); return; }
     if(action.type === "altUp") { altitude++; spendFuel(); showStatusFloat(`Visina ${altitude}`); pulse("⬆"); return; }
     if(action.type === "altDown") { altitude = Math.max(0,altitude-1); spendFuel(); showStatusFloat(`Visina ${altitude}`); pulse("⬇"); return; }
 
@@ -1616,6 +2094,13 @@ async function executeAction(action){
         if(action.type === "down") return moveBy(0,1,true);
     }
 
+    if(L.mode === "taxi" || L.mode === "tractor"){
+        if(action.type === "up" || action.type === "forward") return moveBy(0,-1,true);
+        if(action.type === "down" || action.type === "back") return moveBy(0,1,true);
+        if(action.type === "left") return moveBy(-1,0,true);
+        if(action.type === "right") return moveBy(1,0,true);
+    }
+
     if(L.mode === "robot"){
         if(action.type === "turnLeft") { dir = (dir+3)%4; updateEntity(); return; }
         if(action.type === "turnRight") { dir = (dir+1)%4; updateEntity(); return; }
@@ -1630,11 +2115,22 @@ function moveBy(dx,dy,spend=true){
     const nx = x + dx;
     const ny = y + dy;
     if(nx<0 || nx>=GRID || ny<0 || ny>=GRID) return fail("Izašao si van mape.");
+    if(level().mode === "tractor" && isBadTractorTurn(dx,dy)) return flipTractor();
     if(!canEnter(nx,ny)) return;
     x = nx; y = ny;
+    if(level().mode === "tractor") moveHistory.push({dx,dy});
+    if(level().mode === "tractor" && same([x,y], level().start) && (level().farm||[]).every(p=>plowedCells.includes(`${p[0]},${p[1]}`))) visitedBarnAfterPlow = true;
     if((level().mode === "train" || level().mode === "ship") && entity){
         entity.classList.add("rolling");
         setTimeout(()=>{ if(entity) entity.classList.remove("rolling"); }, 760);
+    }
+    if(level().mode === "taxi" && entity){
+        entity.classList.add("rolling");
+        setTimeout(()=>{ if(entity) entity.classList.remove("rolling"); }, 520);
+    }
+    if(level().mode === "tractor" && entity){
+        entity.classList.add("rolling");
+        setTimeout(()=>{ if(entity) entity.classList.remove("rolling"); }, 940);
     }
     if((level().mode === "aircraft" || level().vehicle === "drone") && entity){
         entity.classList.add("flying");
@@ -1642,9 +2138,42 @@ function moveBy(dx,dy,spend=true){
     }
     if(spend) spendFuel();
     updateEntity();
+    autoTractorWork();
     if(same([x,y], level().goal)) reachedGoalBeforeReturn = true;
     updateHud();
     checkSuccess(false);
+}
+
+function autoTractorWork(){
+    const L = level();
+    if(L.mode !== "tractor") return;
+    const key = `${x},${y}`;
+
+    // Nivoi 26-28: traktor automatski ore čim pređe preko smeđe njive.
+    if(!(L.plowTool || []).length && !(L.mowerTool || []).length){
+        if(hasCoord(L.farm,x,y) && !plowedCells.includes(key)){
+            plowedCells.push(key);
+            showStatusFloat(`Uzoranih polja: ${plowedCells.length}/${(L.farm||[]).length}`);
+            rerenderBoardKeepEntity();
+        }
+        return;
+    }
+
+    // Nivoi 29-30: rad se dešava dok su potezi unutar IF traktor ima plug/kosačicu bloka.
+    if(!tractorToolWorkEnabled) return;
+
+    if(currentTool === "plow" && hasCoord(L.farm,x,y) && !plowedCells.includes(key)){
+        plowedCells.push(key);
+        showStatusFloat(`Uzoranih polja: ${plowedCells.length}/${(L.farm||[]).length}`);
+        rerenderBoardKeepEntity();
+        return;
+    }
+
+    if(currentTool === "mower" && hasCoord(L.grain,x,y) && !harvestedCells.includes(key)){
+        harvestedCells.push(key);
+        showStatusFloat(`Pokošeno: ${harvestedCells.length}/${(L.grain||[]).length}`);
+        rerenderBoardKeepEntity();
+    }
 }
 
 function canEnter(nx,ny){
@@ -1652,6 +2181,7 @@ function canEnter(nx,ny){
     if(hasCoord(L.walls,nx,ny)) return fail("Udario si u prepreku.");
     if(L.mode === "train" && !hasCoord(L.path,nx,ny)) return fail("Voz je sišao sa pruge.");
     if(L.mode === "ship" && L.waterPath && !hasCoord(L.waterPath,nx,ny)) return fail("Brod je izašao iz plovne rute.");
+    if(L.mode === "taxi" && L.roadPath && !hasCoord(L.roadPath,nx,ny) && !same([nx,ny],L.start) && !hasCoord(L.shops,nx,ny) && !hasCoord(L.pickups,nx,ny) && !hasCoord(L.destinations,nx,ny)) return fail("Taxi je izašao sa puta.");
     const m = mountainAt(nx,ny);
     if(m && altitude < m.h) return fail(`Visina ${altitude} nije dovoljna za planinu ${m.h}.`);
     return true;
@@ -1667,8 +2197,30 @@ function spendFuel(){
 function pickup(){
     const L = level();
     if(!hasCoord(L.pickups,x,y)) return fail("Nisi na mjestu za preuzimanje paketa.");
-    if(carrying >= (L.capacity||1)) return fail("Kapacitet je pun.");
     const spotKey = `${x},${y}`;
+
+    if(L.randomPickup){
+        // U taxi nivou 25 svaka destinacija daje pakete samo jednom.
+        // Ako se isti blok slučajno izvrši ponovo na istoj lokaciji, to ne treba rušiti nivo.
+        if(completedPickupSpots.includes(spotKey)){
+            showStatusFloat("Na ovoj destinaciji si već preuzeo pakete ✓");
+            updateHud();
+            checkSuccess(false);
+            return;
+        }
+        if(carrying >= (L.capacity||1)) return fail("Kapacitet je pun.");
+        const amount = 3 + Math.floor(Math.random()*3);
+        carrying = Math.min((L.capacity||20), carrying + amount);
+        taxiRandomTotal += amount;
+        completedPickupSpots.push(spotKey);
+        showStatusFloat(`Dobio si ${amount} paket(a). Ukupno: ${carrying}`);
+        updateHud();
+        animatePickup();
+        checkSuccess(false);
+        return;
+    }
+
+    if(carrying >= (L.capacity||1)) return fail("Kapacitet je pun.");
     if(L.onePackagePerPickup && completedPickupSpots.includes(spotKey)) return fail("Ovaj paket je već preuzet.");
     if(packagesLeftAtHub <= 0) return fail("Nema više paketa za preuzimanje.");
     carrying++;
@@ -1704,6 +2256,95 @@ function land(){
     checkSuccess(false);
 }
 
+function usePlug(){
+    const L = level();
+    if(hasCoord(L.plowTool,x,y)){
+        currentTool = "plow";
+        showStatusFloat("Priključen plug ✓");
+        pulse("🔩");
+        return;
+    }
+    if(currentTool !== "plow") return fail("Prvo idi na malu kocku za plug i priključi ga.");
+    showStatusFloat("Plug je već priključen. Za oranje stavi kretanje unutar IF traktor ima plug.");
+    pulse("🔩");
+    return;
+}
+
+function useMower(){
+    const L = level();
+    if(hasCoord(L.mowerTool,x,y)){
+        currentTool = "mower";
+        visitedBarnAfterPlow = true;
+        showStatusFloat("Priključena kosačica ✓");
+        pulse("⚙️");
+        return;
+    }
+    if(currentTool !== "mower") return fail("Prvo idi na malu kocku za kosačicu i priključi je.");
+    showStatusFloat("Kosačica je već priključena. Za košenje stavi kretanje unutar IF traktor ima kosačicu.");
+    pulse("⚙️");
+    return;
+}
+
+function plow(){
+    const L = level();
+    const key = `${x},${y}`;
+    if((L.plowTool||[]).length && currentTool !== "plow") return fail("Za oranje prvo priključi plug.");
+    if(!hasCoord(L.farm,x,y)) return fail("Traktor može orati samo na smeđoj njivi.");
+    if(!plowedCells.includes(key)){
+        plowedCells.push(key);
+        showStatusFloat(`Uzoranih polja: ${plowedCells.length}/${(L.farm||[]).length}`);
+        pulse("🌱");
+        rerenderBoardKeepEntity();
+        checkSuccess(false);
+    }else{
+        showStatusFloat("Ovo polje je već uzorano.");
+    }
+}
+
+function harvest(){
+    const L = level();
+    const key = `${x},${y}`;
+    if((L.mowerTool||[]).length && currentTool !== "mower") return fail("Za košenje prvo priključi kosačicu.");
+    if(!hasCoord(L.grain,x,y)) return fail("Traktor može kositi samo na njivi sa žitaricama.");
+    if(!harvestedCells.includes(key)){
+        harvestedCells.push(key);
+        showStatusFloat(`Pokošeno: ${harvestedCells.length}/${(L.grain||[]).length}`);
+        pulse("🌾");
+        rerenderBoardKeepEntity();
+        checkSuccess(false);
+    }else{
+        showStatusFloat("Ovo polje je već pokošeno.");
+    }
+}
+
+function rerenderBoardKeepEntity(){
+    const idx = y * GRID + x;
+    const tile = board.children[idx];
+    if(tile && tile.classList && tile.classList.contains("tile")){
+        tile.className = "tile " + tileClass(x,y,level());
+        tile.innerHTML = tileIcon(x,y,level());
+    }
+    updateEntity();
+}
+
+function isBadTractorTurn(dx,dy){
+    if(!dx && !dy) return false;
+    const middle = moveHistory[moveHistory.length-1];
+    const first = moveHistory[moveHistory.length-2];
+    if(!first || !middle) return false;
+
+    // Zabranjeno je samo usko skretanje na U: npr. (1,1) → (1,2) → (2,2) → (2,1).
+    // To znači: treći potez je suprotan prvom, a srednji potez je okomit na prvi.
+    const returnsOppositeOfFirst = dx === -first.dx && dy === -first.dy;
+    const middleIsPerpendicular = (first.dx * middle.dx + first.dy * middle.dy) === 0;
+    return returnsOppositeOfFirst && middleIsPerpendicular;
+}
+
+function flipTractor(){
+    if(entity) entity.classList.add("flipped");
+    return fail("Traktor se prevrnuo zbog U-okreta.");
+}
+
 function targetReached(){
     const L = level();
     if(L.success?.type?.includes("delivered")) return delivered >= (L.success.required||1);
@@ -1722,27 +2363,81 @@ function checkSuccess(finalCheck){
     if(S.type === "deliveredAndGoal") ok = delivered >= (S.required||1) && same([x,y],L.goal);
     if(S.type === "goalAndReturn") ok = reachedGoalBeforeReturn && same([x,y],L.start);
     if(S.type === "deliveredAndReturn") ok = delivered >= (S.required||1) && same([x,y],L.start);
+    if(S.type === "openShop") ok = hasCoord(L.shops,x,y) && !hasCoord(effectiveClosedShops(L),x,y) && checkedClosedShop;
+    if(S.type === "collectAndReturn") ok = carrying >= (S.required||12) && same([x,y],L.start);
+    if(ok && S.type === "collectAndReturn" && S.requiredRuns){
+        level25SuccessStreak++;
+        if(level25SuccessStreak < S.requiredRuns){
+            completing = true;
+            showOverlay(`✅ Uspješno ${level25SuccessStreak}/${S.requiredRuns}`, `Dobro je. Pokreni isti kod ponovo dok ne uspije 3 puta zaredom.`);
+            setTimeout(()=>{
+                hideOverlay();
+                resetState(false);
+                completing = false;
+            }, 3200);
+            return;
+        }
+    }
+    if(S.type === "plowedAll") ok = (L.farm||[]).every(p=>plowedCells.includes(`${p[0]},${p[1]}`));
+    if(S.type === "plowHarvestReturn"){
+        const farmDone = (L.farm||[]).every(p=>plowedCells.includes(`${p[0]},${p[1]}`));
+        const grainDone = (L.grain||[]).every(p=>harvestedCells.includes(`${p[0]},${p[1]}`));
+        // Nivo 30: redoslijed nije bitan (može prvo košenje pa oranje ili obrnuto).
+        // Čim su sva polja obrađena, nivo se završava. Nivo 29 i dalje traži povratak u štalu.
+        ok = farmDone && grainDone && (currentLevel === 29 || same([x,y],L.start));
+    }
     if(ok) completeLevel();
+    else if(finalCheck && S.type === "collectAndReturn"){
+        const usesIfElse = workspaceHasBlock("if_packages");
+        const note = usesIfElse
+            ? "Provjeri granu IF za nedovoljno kutija: tu treba dodati odlazak na još jednu stanicu ako nisi skupio dovoljno kutija."
+            : "Provjeri da li koristiš IF ELSE. U IF za nedovoljno kutija trebaš dodati odlazak na još jednu stanicu.";
+        fail(note);
+    }
+    else if(finalCheck && S.type === "plowHarvestReturn"){
+        const farmDone = (L.farm||[]).every(p=>plowedCells.includes(`${p[0]},${p[1]}`));
+        const grainDone = (L.grain||[]).every(p=>harvestedCells.includes(`${p[0]},${p[1]}`));
+        if(!farmDone || !grainDone) fail("Nisu obrađena sva polja. Redoslijed nije bitan: možeš prvo kositi pa orati ili prvo orati pa kositi.");
+        else if(currentLevel !== 29 && !same([x,y],L.start)) fail("Vrati traktor u štalu na početnu poziciju.");
+    }
     else if(finalCheck && L.mode === "aircraft" && !landed) fail("Avion nije sletio. Dodaj spuštanje do visine 0, zatim blok sleti.");
 }
 
 function completeLevel(){
     if(failed || completing) return;
+    if(currentLevel === 24) level25SuccessStreak = 0;
     completing = true;
-    showOverlay("✅ Bravo!", "Nivo je završen. Učitava se sljedeći...");
-    setTimeout(()=>{
-        hideOverlay();
-        currentLevel++;
-        if(currentLevel >= levels.length){
-            currentLevel = 0;
-            alert("Završio si svih 20 nivoa!");
-        }
-        workspace.clear();
-        renderLevel();
-    },1200);
+    levelSolved = true;
+    showOverlay("✅ Bravo!", "Nivo je završen. Želiš li odmah pokrenuti sljedeći nivo ili ostati još malo u ovom nivou?");
+    const actions = document.getElementById("successActions");
+    if(actions) actions.classList.add("show");
+}
+
+function stayOnCurrentLevel(){
+    completing = false;
+    hideOverlay();
+    const nextBtn = document.getElementById("nextLevelBtn");
+    if(nextBtn) nextBtn.classList.add("show");
+}
+
+function goToNextLevel(){
+    level25SuccessStreak = 0;
+    const actions = document.getElementById("successActions");
+    if(actions) actions.classList.remove("show");
+    hideOverlay();
+    currentLevel++;
+    if(currentLevel >= levels.length){
+        currentLevel = 0;
+        alert(`Završio si svih ${levels.length} nivoa!`);
+    }
+    levelSolved = false;
+    completing = false;
+    workspace.clear();
+    renderLevel();
 }
 
 function fail(msg){
+    if(currentLevel === 24) level25SuccessStreak = 0;
     failed = true;
     showOverlay("❌ Pokušaj ponovo", msg);
     setTimeout(()=>{ hideOverlay(); resetState(false); },1400);
@@ -1764,6 +2459,8 @@ function showOverlay(title,text){
 
 function hideOverlay(){
     document.getElementById("overlay").style.display = "none";
+    const actions = document.getElementById("successActions");
+    if(actions) actions.classList.remove("show");
 }
 
 function showStatusFloat(text){
@@ -1802,6 +2499,7 @@ function populateLevelSelector(){
 }
 
 function jumpToLevel(){
+    level25SuccessStreak = 0;
     currentLevel = Number(document.getElementById("levelSelect").value);
     workspace.clear();
     renderLevel();
