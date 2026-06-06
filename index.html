@@ -1072,12 +1072,12 @@ const levels = [
 {
     name:"Taxi i zatvorena radnja",
     icon:"🚕", vehicle:"taxi", mode:"taxi", theme:"grass",
-    mission:"Prvo idi zajedničkim putem do račvanja. Na prvoj, udaljenoj radnji provjeri if radnja zatvorena. Ako jeste, vrati se na račvanje i idi do druge, otvorene radnje koja je na drugoj strani mape.",
+    mission:"Idi do bilo koje radnje i provjeri IF. Ako je zatvorena, idi do druge radnje; ako je otvorena, vrati se na taxi štand. Program se testira 3 puta.",
     start:[0,9], goal:[8,2], showCoords:true,
     toolbox:["move_up","move_down","move_left","move_right","while_x","while_y","if_shop_closed"],
     roadPath:[[0,9],[1,9],[2,9],[3,9],[4,9],[4,8],[4,7],[4,6],[4,5],[4,4],[3,4],[2,4],[1,4],[1,3],[1,2],[5,4],[6,4],[7,4],[8,4],[8,3],[8,2]],
     roadRoutes:[[[0,9],[1,9],[2,9],[3,9],[4,9],[4,8],[4,7],[4,6],[4,5],[4,4]],[[4,4],[3,4],[2,4],[1,4],[1,3],[1,2]],[[4,4],[5,4],[6,4],[7,4],[8,4],[8,3],[8,2]]],
-    shops:[[1,2],[8,2]], closedShops:[[1,2]], randomShopState:true, success:{type:"openShop"}
+    shops:[[8,2],[1,2]], closedShops:[[8,2]], randomShopState:true, success:{type:"openShopReturn3", requiredRuns:3}
 },
 {
     name:"Taxi radnja i gorivo",
@@ -1168,12 +1168,28 @@ let failed = false;
 let statusFloatTimer = null;
 let completing = false;
 let levelSolved = false;
+let level23SuccessStreak = 0;
+let level23SawFirstClosed = false;
+let level23SawFirstOpen = false;
+let level23ScenarioPlan = [];
+let checkedFirstShop = false;
+let visitedOpenShop = false;
+let level23FirstShopWasClosed = null;
 let level25SuccessStreak = 0;
 
 function level(){ return levels[currentLevel]; }
 function same(a,b){ return a && b && a[0]===b[0] && a[1]===b[1]; }
 function hasCoord(list,cx,cy){ return (list||[]).some(p=>p[0]===cx && p[1]===cy); }
 function effectiveClosedShops(L=level()){ return (closedShopsState && closedShopsState.length) ? closedShopsState : (L.closedShops || []); }
+function prepareLevel23ScenarioPlan(){
+    if(level23ScenarioPlan.length >= 3) return;
+    const third = Math.random() < 0.5 ? 0 : 1;
+    level23ScenarioPlan = Math.random() < 0.5 ? [0,1,third] : [1,0,third];
+}
+function closedShopIndexForLevel23Run(){
+    prepareLevel23ScenarioPlan();
+    return level23ScenarioPlan[Math.min(level23SuccessStreak, level23ScenarioPlan.length - 1)];
+}
 function mountainAt(cx,cy){ return (level().mountains||[]).find(m=>m.x===cx && m.y===cy); }
 function tileSize(){ return board.clientWidth / GRID; }
 
@@ -1564,10 +1580,16 @@ function resetState(hide=true){
     visitedBarnAfterPlow = false;
     moveHistory = [];
     checkedClosedShop = false;
+    checkedFirstShop = false;
+    visitedOpenShop = false;
+    level23FirstShopWasClosed = null;
     levelSolved = false;
     const nextBtn = document.getElementById("nextLevelBtn");
     if(nextBtn) nextBtn.classList.remove("show");
-    if(L.randomShopState && (L.shops || []).length >= 2){
+    if(currentLevel === 22 && L.randomShopState && (L.shops || []).length >= 2){
+        const closedIndex = closedShopIndexForLevel23Run();
+        closedShopsState = [L.shops[closedIndex]];
+    }else if(L.randomShopState && (L.shops || []).length >= 2){
         const chosen = Math.floor(Math.random() * L.shops.length);
         closedShopsState = [L.shops[chosen]];
     }else{
@@ -2035,6 +2057,10 @@ async function executeList(list, depth){
             if(!hasCoord(L.shops,x,y)) return fail("Uslov za radnju možeš provjeriti samo kada je taxi na bloku radnje.");
             checkedClosedShop = true;
             const isClosed = hasCoord(effectiveClosedShops(L),x,y);
+            if(currentLevel === 22 && !checkedFirstShop){
+                checkedFirstShop = true;
+                level23FirstShopWasClosed = isClosed;
+            }
             animateShopCheck(isClosed);
             await sleep(850);
             const conditionOk = action.state === "OPEN" ? !isClosed : isClosed;
@@ -2154,6 +2180,7 @@ function moveBy(dx,dy,spend=true){
     if(level().mode === "tractor" && isBadTractorTurn(dx,dy)) return flipTractor();
     if(!canEnter(nx,ny)) return;
     x = nx; y = ny;
+    if(currentLevel === 22 && hasCoord(level().shops,x,y) && !hasCoord(effectiveClosedShops(level()),x,y)) visitedOpenShop = true;
     if(level().mode === "tractor") moveHistory.push({dx,dy});
     if(level().mode === "tractor" && same([x,y], level().start) && (level().farm||[]).every(p=>plowedCells.includes(`${p[0]},${p[1]}`))) visitedBarnAfterPlow = true;
     if((level().mode === "train" || level().mode === "ship") && entity){
@@ -2400,12 +2427,29 @@ function checkSuccess(finalCheck){
     if(S.type === "goalAndReturn") ok = reachedGoalBeforeReturn && same([x,y],L.start);
     if(S.type === "deliveredAndReturn") ok = delivered >= (S.required||1) && same([x,y],L.start);
     if(S.type === "openShop") ok = hasCoord(L.shops,x,y) && !hasCoord(effectiveClosedShops(L),x,y) && checkedClosedShop;
+    if(S.type === "openShopReturn3") ok = same([x,y],L.start) && checkedFirstShop && visitedOpenShop;
     if(S.type === "collectAndReturn") ok = carrying >= (S.required||12) && same([x,y],L.start);
     if(ok && S.type === "collectAndReturn" && S.requiredRuns){
         level25SuccessStreak++;
         if(level25SuccessStreak < S.requiredRuns){
             completing = true;
             showOverlay(`✅ Uspješno ${level25SuccessStreak}/${S.requiredRuns}`, `Dobro je. Pokreni isti kod ponovo dok ne uspije 3 puta zaredom.`);
+            setTimeout(()=>{
+                hideOverlay();
+                resetState(false);
+                completing = false;
+            }, 3200);
+            return;
+        }
+    }
+    if(ok && S.type === "openShopReturn3" && S.requiredRuns){
+        const firstClosed = level23FirstShopWasClosed === true;
+        if(firstClosed) level23SawFirstClosed = true;
+        else level23SawFirstOpen = true;
+        level23SuccessStreak++;
+        if(level23SuccessStreak < S.requiredRuns || !level23SawFirstClosed || !level23SawFirstOpen){
+            completing = true;
+            showOverlay(`✅ Test ${level23SuccessStreak}/${S.requiredRuns} prošao`, `Pokreni ponovo isti kod. U tri testa prva provjerena radnja mora biti bar jednom otvorena i bar jednom zatvorena.`);
             setTimeout(()=>{
                 hideOverlay();
                 resetState(false);
@@ -2423,6 +2467,9 @@ function checkSuccess(finalCheck){
         ok = farmDone && grainDone && (currentLevel === 29 || same([x,y],L.start));
     }
     if(ok) completeLevel();
+    else if(finalCheck && S.type === "openShopReturn3"){
+        fail("Provjeri jednu radnju IF blokom. Ako je otvorena, vrati se na štand; ako je zatvorena, idi do druge radnje pa se vrati na štand.");
+    }
     else if(finalCheck && S.type === "collectAndReturn"){
         const usesIfElse = workspaceHasBlock("if_packages");
         const note = usesIfElse
@@ -2441,6 +2488,20 @@ function checkSuccess(finalCheck){
 
 function completeLevel(){
     if(failed || completing) return;
+    if(currentLevel === 22){
+        level23SuccessStreak = 0;
+        level23SawFirstClosed = false;
+        level23SawFirstOpen = false;
+        level23FirstShopWasClosed = null;
+        level23ScenarioPlan = [];
+    }
+    if(currentLevel === 22){
+        level23SuccessStreak = 0;
+        level23SawFirstClosed = false;
+        level23SawFirstOpen = false;
+        level23FirstShopWasClosed = null;
+        level23ScenarioPlan = [];
+    }
     if(currentLevel === 24) level25SuccessStreak = 0;
     completing = true;
     levelSolved = true;
@@ -2457,6 +2518,11 @@ function stayOnCurrentLevel(){
 }
 
 function goToNextLevel(){
+    level23SuccessStreak = 0;
+    level23SawFirstClosed = false;
+    level23SawFirstOpen = false;
+    level23FirstShopWasClosed = null;
+    level23ScenarioPlan = [];
     level25SuccessStreak = 0;
     const actions = document.getElementById("successActions");
     if(actions) actions.classList.remove("show");
