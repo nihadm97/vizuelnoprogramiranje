@@ -728,25 +728,62 @@ button:hover{
     z-index:50;
 }
 
-@media(max-width:980px){
-    body{overflow:auto;}
-    .topbar{position:sticky;top:0;}
-    .main{height:auto;min-height:calc(100vh - 66px);grid-template-columns:1fr;}
-    .game-panel{min-height:calc(var(--board-size) + 290px);border-right:0;border-bottom:2px solid rgba(255,255,255,.08);padding-top:92px;padding-bottom:150px;overflow-y:auto;}
-    .editor-panel{height:620px;}
-    :root{--board-size:min(92vw,500px);}
+.mobile-nav,.touch-controls{display:none;}
+.touch-controls{grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px;}
+.touch-controls button{font-size:20px;padding:10px;min-height:44px;}
+.touch-controls .touch-up{grid-column:2;}
+.touch-controls .touch-left{grid-column:1;}
+.touch-controls .touch-action{grid-column:1 / -1;font-size:14px;}
+body.touch-device .touch-controls.available{display:grid;}
+body.touch-device .keyboard-help{display:none!important;}
+@media(any-pointer:coarse){
+    .touch-controls.available{display:grid;}
+    .keyboard-help{display:none!important;}
 }
-
-@media(max-width:560px){
-    .topbar{align-items:flex-start;flex-direction:column;}
-    .top-info{justify-content:flex-start;}
-    .logo{font-size:19px;}
+.entity.train.derailed{outline:3px solid #ef4444;}
+button,.level-select{touch-action:manipulation;}
+@media(max-width:980px){
+    :root{--board-size:min(calc(100vw - 32px),500px);}
+    body{overflow:auto;}
+    .topbar{padding:10px 12px;flex-wrap:wrap;}
+    .logo{font-size:19px;white-space:normal;}
+    .top-info{justify-content:flex-start;gap:8px;}
     .pill,.level-select{font-size:12px;padding:8px 10px;}
-    .mission-card{top:-96px;}
-    .hud{grid-template-columns:repeat(2,1fr);bottom:-132px;}
-    .controls{margin-top:18px;}
-    .game-panel{min-height:calc(var(--board-size) + 360px);}
-    .editor-panel{height:560px;}
+    button,.level-select{min-height:44px;}
+    .mobile-nav{display:flex;gap:8px;padding:8px 12px;background:#111827;position:sticky;top:0;z-index:1001;}
+    .mobile-nav button{flex:1;padding:10px 6px;box-shadow:none;}
+    .mobile-nav button[aria-pressed="true"]{outline:2px solid #93c5fd;outline-offset:-2px;}
+    .main{height:auto;min-height:0;grid-template-columns:1fr;}
+    .game-panel{padding:12px 16px 24px;border-right:0;overflow:visible;}
+    .game-card{display:flex;flex-direction:column;}
+    .mission-card{position:static;min-height:0;margin-bottom:12px;padding:12px;}
+    .mission-sub{font-size:13px;line-height:1.4;}
+    .board{flex-shrink:0;}
+    .board-info,.board-info.lower-fuel{position:static;flex-direction:row;flex-wrap:wrap;gap:6px;margin-top:10px;}
+    .board-pill{min-width:0;font-size:12px;padding:7px 10px;}
+    .status-float{position:static;display:none;transform:none;margin-top:10px;white-space:normal;}
+    .status-float.show{display:block;}
+    .controls{margin-top:12px;gap:8px;}
+    .controls button{flex:1;padding:12px 8px;}
+    .game-card.with-coords{--board-size:min(calc(100vw - 64px),460px);margin-left:28px;}
+    .game-card.with-coords .board{margin-bottom:72px;}
+    .game-card.with-coords .controls{margin-top:12px;}
+    .coord-axis-title.y{display:none;}
+    .coord-label.y{left:-30px;}
+    .keyboard-help{display:none!important;}
+    .touch-controls.available{display:grid;}
+    .editor-panel{height:calc(100dvh - 165px);min-height:420px;}
+    /* An unopened Blockly flyout must not intercept touches above the palette. */
+    .blocklyScrollbarHorizontal.blocklyFlyoutScrollbar:not([width]){display:none;}
+    body:not(.editing) .editor-panel{display:none;}
+    body.editing .game-panel{display:none;}
+    .overlay{position:fixed;z-index:1000000;}
+    .overlay h2{font-size:28px;}
+    .overlay p{font-size:16px;}
+}
+@media(max-width:980px) and (max-height:600px) and (orientation:landscape){
+    :root{--board-size:min(calc(100vw - 32px),300px);}
+    .game-card.with-coords{--board-size:min(calc(100vw - 64px),300px);}
 }
 
 /* v31: vizuelne oznake težine nivoa bez tekstualnih oznaka */
@@ -795,6 +832,11 @@ button:hover{
     </div>
 </div>
 
+<nav class="mobile-nav" aria-label="Prikaz igre">
+    <button id="mapTab" aria-pressed="true" onclick="setMobileView(false)">🗺 Mapa</button>
+    <button id="codeTab" class="secondary" aria-pressed="false" onclick="setMobileView(true)">🧩 Blokovi</button>
+    <button id="mobileRunBtn" onclick="runCode()">▶ Pokreni</button>
+</nav>
 <div class="main">
     <section class="game-panel">
         <div class="game-card">
@@ -825,6 +867,13 @@ button:hover{
             <div class="controls">
                 <button onclick="runCode()" id="runBtn">▶ Pokreni</button>
                 <button onclick="resetLevel()" class="secondary">↺ Vrati na početak</button>
+            </div>
+            <div class="touch-controls" id="touchControls" aria-label="Upravljanje vozilom">
+                <button class="touch-up" aria-label="Gore" onclick="handleDirection('UP')">↑</button>
+                <button class="touch-left" aria-label="Lijevo" onclick="handleDirection('LEFT')">←</button>
+                <button aria-label="Dole" onclick="handleDirection('DOWN')">↓</button>
+                <button aria-label="Desno" onclick="handleDirection('RIGHT')">→</button>
+                <button class="touch-action" id="touchAction" onclick="handlePackageAction()">📦 Preuzmi / istovari</button>
             </div>
         </div>
 
@@ -1164,6 +1213,8 @@ let taxiRandomTotal = 0;
 let currentTool = null;
 let tractorToolWorkEnabled = false;
 let running = false;
+let executionId = 0;
+let failureTimer = null;
 let failed = false;
 let statusFloatTimer = null;
 let completing = false;
@@ -1194,6 +1245,7 @@ function mountainAt(cx,cy){ return (level().mountains||[]).find(m=>m.x===cx && m
 function tileSize(){ return board.clientWidth / GRID; }
 
 function renderLevel(){
+    hideOverlay();
     const L = level();
     board.innerHTML = "";
     board.classList.toggle("mountain-backdrop", !!L.fullMountainBackdrop);
@@ -1242,6 +1294,9 @@ function renderLevel(){
         helpBox.style.display = "none";
     }
     document.getElementById("runBtn").style.display = (L.mode === "keyboard" || L.mode === "keyProgram") ? "none" : "inline-block";
+    document.getElementById("mobileRunBtn").hidden = L.mode === "keyboard" || L.mode === "keyProgram";
+    document.getElementById("touchControls").classList.toggle("available", L.mode === "keyboard" || L.mode === "keyProgram");
+    document.getElementById("touchAction").hidden = L.mode !== "keyboard";
     const nextBtn = document.getElementById("nextLevelBtn");
     if(nextBtn) nextBtn.classList.remove("show");
 
@@ -1554,6 +1609,8 @@ function drawRouteLayer(L){
 }
 
 function resetState(hide=true){
+    executionId++;
+    clearTimeout(failureTimer);
     const L = level();
     x = L.start[0];
     y = L.start[1];
@@ -1599,7 +1656,7 @@ function resetState(hide=true){
     currentTool = null;
     tractorToolWorkEnabled = false;
     if(entity){
-        entity.classList.remove("glow","rolling","flying","flipped");
+        entity.classList.remove("glow","rolling","flying","flipped","derailed");
         entity.style.transition = "none";
         updateEntity();
         void entity.offsetWidth;
@@ -1792,11 +1849,48 @@ Blockly.defineBlocksWithJsonArray([
 ]);
 
 
-const workspace = Blockly.inject("blocklyDiv",{
-    toolbox:document.getElementById("toolbox"),
-    trashcan:true,
-    scrollbars:true
+const compactLayout = window.matchMedia("(max-width:980px)");
+function createWorkspace(){
+    return Blockly.inject("blocklyDiv",{
+        toolbox:document.getElementById("toolbox"),
+        horizontalLayout:compactLayout.matches,
+        toolboxPosition:"start",
+        trashcan:true,
+        scrollbars:true,
+        zoom:{controls:true,wheel:false,startScale:compactLayout.matches ? 0.85 : 1,minScale:0.5,maxScale:1.5},
+        move:{scrollbars:true,drag:true,wheel:true}
+    });
+}
+let workspace = createWorkspace();
+function setMobileView(editing){
+    document.body.classList.toggle("editing",editing);
+    document.getElementById("mapTab").setAttribute("aria-pressed",String(!editing));
+    document.getElementById("codeTab").setAttribute("aria-pressed",String(editing));
+    requestAnimationFrame(resizeGame);
+}
+function resizeGame(){
+    Blockly.svgResize(workspace);
+    if(!board.clientWidth) return;
+    const previousTransition = entity?.style.transition;
+    if(entity) entity.style.transition = "none";
+    updateEntity();
+    if(entity){
+        void entity.offsetWidth;
+        entity.style.transition = previousTransition;
+    }
+    const s = tileSize();
+    board.querySelectorAll(".coord-label.x.bottom").forEach((el,i)=>el.style.left = (i*s+s/2-12)+"px");
+    board.querySelectorAll(".coord-label.y").forEach((el,i)=>el.style.top = (i*s+s/2-12)+"px");
+}
+compactLayout.addEventListener("change",()=>{
+    const saved = Blockly.serialization.workspaces.save(workspace);
+    workspace.dispose();
+    workspace = createWorkspace();
+    updateToolbox();
+    Blockly.serialization.workspaces.load(saved,workspace);
+    resizeGame();
 });
+new ResizeObserver(()=>requestAnimationFrame(resizeGame)).observe(document.querySelector(".editor-panel"));
 
 function updateToolbox(){
     let names = [...(level().toolbox || [])];
@@ -1986,15 +2080,20 @@ async function runCode(){
     running = true;
     resetState(true);
     running = true;
+    setMobileView(false);
+    const runId = executionId;
     await sleep(140);
+    if(runId !== executionId) return;
     const commands = commandsFromWorkspace();
-    await executeList(commands,0);
+    await executeList(commands,0,runId);
+    if(runId !== executionId) return;
     if(!failed && !completing) checkSuccess(true);
     running = false;
 }
 
 function delayAfterAction(action){
-    if(level().mode === "train" || level().mode === "ship") return 760;
+    if(level().mode === "train") return 820;
+    if(level().mode === "ship") return 760;
     if(level().mode === "taxi" && ["forward","back","left","right","up","down"].includes(action.type)) return 500;
     if(level().mode === "tractor" && ["forward","back","left","right","up","down"].includes(action.type)) return 940;
     if(action.type === "altUp" || action.type === "altDown") return 950;
@@ -2015,40 +2114,41 @@ function animateShopCheck(isClosed){
     showStatusFloat(isClosed ? "Radnja je zatvorena 🔒" : "Radnja je otvorena ✓");
 }
 
-async function executeList(list, depth){
+async function executeList(list, depth, runId = executionId){
+    if(runId !== executionId) return;
     if(depth > 20){ fail("Petlja je preduboka."); return; }
     for(const action of list){
-        if(failed || completing) return;
+        if(runId !== executionId || failed || completing) return;
         if(action.type === "repeat"){
             for(let i=0;i<action.times;i++){
-                await executeList(action.body, depth+1);
-                if(failed) return;
+                await executeList(action.body, depth+1, runId);
+                if(runId !== executionId || failed || completing) return;
             }
         }else if(action.type === "whileGoal"){
             let guard = 0;
-            while(!atGoalTile() && !failed && guard < 60){
-                await executeList(action.body, depth+1);
+            while(!atGoalTile() && runId === executionId && !failed && !completing && guard < 60){
+                await executeList(action.body, depth+1, runId);
                 guard++;
             }
             if(guard >= 60) fail("Petlja se ponovila previše puta.");
         }else if(action.type === "whileTarget"){
             let guard = 0;
-            while(!atSelectedTarget(action.target) && !failed && guard < 60){
-                await executeList(action.body, depth+1);
+            while(!atSelectedTarget(action.target) && runId === executionId && !failed && !completing && guard < 60){
+                await executeList(action.body, depth+1, runId);
                 guard++;
             }
             if(guard >= 60) fail("Petlja se ponovila previše puta.");
         }else if(action.type === "whileX"){
             let guard = 0;
-            while(whileCondition(currentCoordX(), action.op, action.tx) && !failed && guard < 80){
-                await executeList(action.body, depth+1);
+            while(whileCondition(currentCoordX(), action.op, action.tx) && runId === executionId && !failed && !completing && guard < 80){
+                await executeList(action.body, depth+1, runId);
                 guard++;
             }
             if(guard >= 80) fail("while x= se ponovio previše puta.");
         }else if(action.type === "whileY"){
             let guard = 0;
-            while(whileCondition(currentCoordY(), action.op, action.ty) && !failed && guard < 80){
-                await executeList(action.body, depth+1);
+            while(whileCondition(currentCoordY(), action.op, action.ty) && runId === executionId && !failed && !completing && guard < 80){
+                await executeList(action.body, depth+1, runId);
                 guard++;
             }
             if(guard >= 80) fail("while y= se ponovio previše puta.");
@@ -2063,24 +2163,26 @@ async function executeList(list, depth){
             }
             animateShopCheck(isClosed);
             await sleep(850);
+            if(runId !== executionId) return;
             const conditionOk = action.state === "OPEN" ? !isClosed : isClosed;
-            if(conditionOk) await executeList(action.body, depth+1);
-            else await executeList(action.elseBody, depth+1);
+            if(conditionOk) await executeList(action.body, depth+1, runId);
+            else await executeList(action.elseBody, depth+1, runId);
         }else if(action.type === "ifPackages"){
             const hasEnoughPackages = carrying >= 12;
             const conditionOk = action.state === "ENOUGH" ? hasEnoughPackages : !hasEnoughPackages;
-            if(conditionOk) await executeList(action.body, depth+1);
-            else await executeList(action.elseBody, depth+1);
+            if(conditionOk) await executeList(action.body, depth+1, runId);
+            else await executeList(action.elseBody, depth+1, runId);
         }else if(action.type === "ifTractorTool"){
             if((action.tool === "PLOW" && currentTool === "plow") || (action.tool === "MOWER" && currentTool === "mower")){
                 const previousToolWork = tractorToolWorkEnabled;
                 tractorToolWorkEnabled = true;
-                await executeList(action.body, depth+1);
-                tractorToolWorkEnabled = previousToolWork;
+                await executeList(action.body, depth+1, runId);
+                if(runId === executionId) tractorToolWorkEnabled = previousToolWork;
             }
         }else{
             await executeAction(action);
         }
+        if(runId !== executionId || failed || completing) return;
         await sleep(delayAfterAction(action));
     }
 }
@@ -2173,7 +2275,35 @@ async function executeAction(action){
 function dirDx(){ return [1,0,-1,0][dir]; }
 function dirDy(){ return [0,1,0,-1][dir]; }
 
+async function moveTrain(dx,dy){
+    const runId = executionId;
+    const nx = x + dx, ny = y + dy;
+    const outside = nx<0 || nx>=GRID || ny<0 || ny>=GRID;
+    const offTrack = outside || !hasCoord(level().path,nx,ny);
+    stopped = false;
+    entity.classList.remove("glow");
+    entity.classList.add("rolling");
+    // At the map edge show a short attempt, keeping the train visible.
+    x = outside ? x + dx * .3 : nx;
+    y = outside ? y + dy * .3 : ny;
+    updateEntity();
+    if(!offTrack){
+        const movingEntity = entity;
+        setTimeout(()=>{
+            if(runId === executionId) movingEntity.classList.remove("rolling");
+        },780);
+        return;
+    }
+    failed = true;
+    entity.classList.add("derailed");
+    await sleep(900);
+    if(runId !== executionId) return;
+    entity.classList.remove("rolling");
+    fail(outside ? "Voz je stigao do ruba mape. Provjeri smjer kretanja." : "Voz je sišao sa pruge. Provjeri posljednji potez.");
+}
+
 function moveBy(dx,dy,spend=true){
+    if(level().mode === "train") return moveTrain(dx,dy);
     const nx = x + dx;
     const ny = y + dy;
     if(nx<0 || nx>=GRID || ny<0 || ny>=GRID) return fail("Izašao si van mape.");
@@ -2539,10 +2669,11 @@ function goToNextLevel(){
 }
 
 function fail(msg){
+    clearTimeout(failureTimer);
     if(currentLevel === 24) level25SuccessStreak = 0;
     failed = true;
     showOverlay("❌ Pokušaj ponovo", msg);
-    setTimeout(()=>{ hideOverlay(); resetState(false); },1400);
+    failureTimer = setTimeout(()=>{ hideOverlay(); resetState(false); },2200);
     return false;
 }
 
@@ -2636,7 +2767,7 @@ function jumpToLevel(){
     renderLevel();
 }
 
-window.addEventListener("resize", updateEntity);
+window.addEventListener("resize", resizeGame);
 
 function keyDirectionName(e){
     if(["ArrowUp","w","W"].includes(e.key)) return "UP";
@@ -2646,42 +2777,39 @@ function keyDirectionName(e){
     return null;
 }
 
-window.addEventListener("keydown", async e=>{
-    const L = level();
+async function handleDirection(key){
     if(failed || running || completing) return;
-
-    let handled = false;
-
+    const L = level();
     if(L.mode === "keyboard"){
-        if(["ArrowUp","w","W"].includes(e.key)){ moveBy(0,-1,true); handled = true; }
-        else if(["ArrowDown","s","S"].includes(e.key)){ moveBy(0,1,true); handled = true; }
-        else if(["ArrowLeft","a","A"].includes(e.key)){ moveBy(-1,0,true); handled = true; }
-        else if(["ArrowRight","d","D"].includes(e.key)){ moveBy(1,0,true); handled = true; }
-        else if(e.code === "Space"){
-            if(hasCoord(L.pickups,x,y)){ pickup(); handled = true; }
-            else if(hasCoord(L.dropoffs,x,y)){ unload(); handled = true; }
-        }
+        const [dx,dy] = {UP:[0,-1],DOWN:[0,1],LEFT:[-1,0],RIGHT:[1,0]}[key];
+        moveBy(dx,dy,true);
+    }else if(L.mode === "keyProgram"){
+        const commands = commandsForKey(key);
+        if(!commands.length) return;
+        const runId = executionId;
+        running = true;
+        await executeList(commands,0,runId);
+        if(runId === executionId) running = false;
     }
-
-    if(L.mode === "keyProgram"){
-        const key = keyDirectionName(e);
-        if(key){
-            const commands = commandsForKey(key);
-            if(commands.length > 0){
-                running = true;
-                await executeList(commands,0);
-                running = false;
-            }
-            handled = true;
-        }
+}
+function handlePackageAction(){
+    if(failed || running || completing || level().mode !== "keyboard") return;
+    if(carrying > 0 && hasCoord(level().dropoffs,x,y)) unload();
+    else if(hasCoord(level().pickups,x,y)) pickup();
+}
+window.addEventListener("keydown", e=>{
+    if(e.target.closest?.("input,textarea,select,[contenteditable='true']")) return;
+    if(!["keyboard","keyProgram"].includes(level().mode)) return;
+    const key = keyDirectionName(e);
+    if(key){ e.preventDefault(); handleDirection(key); }
+    else if(e.code === "Space" && level().mode === "keyboard"){
+        e.preventDefault(); handlePackageAction();
     }
-
-    if(handled) e.preventDefault();
 });
 
 populateLevelSelector();
+document.body.classList.toggle("touch-device",navigator.maxTouchPoints > 0);
 renderLevel();
 </script>
 </body>
 </html>
-
